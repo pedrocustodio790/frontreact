@@ -1,0 +1,59 @@
+
+/* src/index.css */
+
+/* -------------------------------------------------- */
+/* 1. SUAS VARIÁVEIS DE CORES GLOBAIS (O TEMA)         */
+/* -------------------------------------------------- */
+:root {
+  /* Cores primarias */
+  --vermelhoSenai: #e30613;
+  --cinzaClaro: #f2f2f2;
+  --branco: #ffffff;
+  --Preto: #000000;
+
+  /* Cores secundarias */
+  --azulEscuro: #002d5b;
+  --cinzaMedio: #cccccc;
+  --amareloOuro: #ffc72c;
+  
+  /* Cores de Status e Alertas */
+  --vermelho-alerta: #ff4d4d;
+  --laranja-aviso: #ff9f43;
+  --verde-sucesso: #2ecc71;
+
+  /* Fontes e espaçamento */
+  --font-principal: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --border-radius-padrao: 8px;
+}
+
+/* -------------------------------------------------- */
+/* 2. ESTILOS DE BASE E RESET                         */
+/* -------------------------------------------------- */
+
+/* Um "reset" simples para garantir consistência entre navegadores */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-principal);
+  background-color: var(--cinzaClaro);
+  color: var(--Preto);
+}
+
+/* -------------------------------------------------- */
+/* 3. LAYOUT PRINCIPAL DA APLICAÇÃO                   */
+/* -------------------------------------------------- */
+.app-container {
+  display: flex;
+}
+
+.main-content {
+  flex-grow: 1; /* Faz o conteúdo principal ocupar todo o espaço restante */
+  padding: 2rem;
+  transition: margin-left 0.3s ease; /* Animação quando a sidebar encolher */
+}
+
+/* (Adicione aqui outros estilos que você queira que sejam globais) */
