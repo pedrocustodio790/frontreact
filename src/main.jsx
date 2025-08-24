@@ -1,41 +1,37 @@
-// src/main.jsx
-
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// Importando os componentes de página
 import App from "./App.jsx";
 import LoginPage from "./pages/loginpage.jsx";
 import DashboardPage from "./pages/dashboardpage.jsx";
-import ComponentesPage from "./pages/componentepages.jsx"
+import ComponentesPage from "./pages/componentepages.jsx";
+import HistoricoPage from "./pages/historicopage.jsx";
+import ConfiguracoesPage from "./pages/configuracaopages.jsx"; // 1. Importe a nova página
 import "./index.css";
+import { ThemeProvider } from './context/themecontext'; 
 
-// Configuração do mapa de rotas da aplicação
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />, // O App agora funciona como um "protetor" de rotas
+    element: <App />,
     children: [
-      {
-        index: true, // Rota inicial (ex: localhost:5173/)
-        element: <DashboardPage />,
-      },
-      {
-        path: "/componentes", // Rota para a página de componentes
-        element: <ComponentesPage />,
-      },
-      // Futuramente, você adicionaria as rotas /historico e /configuracoes aqui
+      { index: true, element: <DashboardPage /> },
+      { path: "/componentes", element: <ComponentesPage /> },
+      { path: "/historico", element: <HistoricoPage /> },
+      { path: "/configuracoes", element: <ConfiguracoesPage /> }, // 2. Adicione a nova rota
     ],
   },
   {
-    path: "/login", // Rota pública para a página de login
+    path: "/login",
     element: <LoginPage />,
   },
 ]);
-
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    {/* 2. Envolva o RouterProvider com o ThemeProvider */}
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );

@@ -1,59 +1,222 @@
+/* ================================================== */
+/* CSS Global - src/index.css                         */
+/* ================================================== */
+body.dark {
+  --cinzaClaro: #121212;
+  --cinzaMedio: #2a2a2a;
+  --branco: #1e1e1e;
+  --cinzaEscuroTexto: #e0e0e0;
+  --azulEscuro: #1e1e1e;
+}
 
-/* src/index.css */
+/* Ajuste para a cor do texto do link ativo no modo escuro */
+body.dark .nav-link.active {
+  color: var(--branco) !important;
+}
 
-/* -------------------------------------------------- */
-/* 1. SUAS VARIÁVEIS DE CORES GLOBAIS (O TEMA)         */
-/* -------------------------------------------------- */
+body.dark table {
+  color: var(--cinzaEscuroTexto);
+}
+/* 1. Variáveis de Cor e Estilo (Paleta do Projeto) */
 :root {
-  /* Cores primarias */
-  --vermelhoSenai: #e30613;
-  --cinzaClaro: #f2f2f2;
-  --branco: #ffffff;
-  --Preto: #000000;
-
-  /* Cores secundarias */
-  --azulEscuro: #002d5b;
-  --cinzaMedio: #cccccc;
-  --amareloOuro: #ffc72c;
-  
-  /* Cores de Status e Alertas */
-  --vermelho-alerta: #ff4d4d;
-  --laranja-aviso: #ff9f43;
-  --verde-sucesso: #2ecc71;
-
-  /* Fontes e espaçamento */
-  --font-principal: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --vermelhoSenai: #C00000;
+  --branco: #FFFFFF;
+  --cinzaClaro: #f4f4f4;
+  --cinzaMedio: #e0e0e0;
+  --cinzaEscuroTexto: #333;
+  --azulEscuro: #1A2E44;
+  --amareloOuro: #FFD700;
+  --vermelho-alerta: #dc3545;
   --border-radius-padrao: 8px;
 }
 
-/* -------------------------------------------------- */
-/* 2. ESTILOS DE BASE E RESET                         */
-/* -------------------------------------------------- */
-
-/* Um "reset" simples para garantir consistência entre navegadores */
+/* 2. Reset Básico e Padrões do Corpo */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  font-family: var(--font-principal);
   background-color: var(--cinzaClaro);
-  color: var(--Preto);
+  color: var(--cinzaEscuroTexto);
 }
 
-/* -------------------------------------------------- */
-/* 3. LAYOUT PRINCIPAL DA APLICAÇÃO                   */
-/* -------------------------------------------------- */
+/* 3. Layout Principal da Aplicação */
 .app-container {
   display: flex;
 }
 
 .main-content {
-  flex-grow: 1; /* Faz o conteúdo principal ocupar todo o espaço restante */
+  flex-grow: 1;
   padding: 2rem;
-  transition: margin-left 0.3s ease; /* Animação quando a sidebar encolher */
+  height: 100vh;
+  overflow-y: auto;
 }
 
-/* (Adicione aqui outros estilos que você queira que sejam globais) */
+/* 4. Estilos do Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: var(--azulEscuro);
+  color: var(--branco);
+  height: 100vh;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.sidebar-nav {
+  list-style-type: none;
+  flex-grow: 1;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  color: var(--branco);
+  text-decoration: none;
+  border-radius: var(--border-radius-padrao);
+  margin-bottom: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  background-color: var(--vermelhoSenai);
+  font-weight: bold;
+}
+
+/* 5. Estilos do Cabeçalho da Página (Dashboard/Componentes) */
+.header-dashboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cinzaMedio);
+}
+
+.header-dashboard h1 {
+  font-size: 2rem;
+  color: var(--azulEscuro);
+}
+
+/* 6. Botão de Ação Principal */
+.action-button {
+  background-color: var(--vermelhoSenai);
+  color: var(--branco);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-padrao);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.action-button:hover {
+  background-color: #a40000;
+  transform: translateY(-2px);
+}
+
+/* 7. Estilos da Tabela de Componentes */
+.table-container {
+  margin-top: 2rem;
+  background-color: var(--branco);
+  border-radius: var(--border-radius-padrao);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--cinzaMedio);
+}
+
+thead th {
+  font-weight: bold;
+  color: var(--azulEscuro);
+}
+
+tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+td.actions button {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  color: var(--branco);
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+td.actions button:hover {
+  opacity: 0.85;
+}
+
+.btn-edit {
+  background-color: var(--amareloOuro);
+}
+
+.btn-delete {
+  background-color: var(--vermelho-alerta);
+}
+/* Define as variáveis de cor e estilos base para o tema escuro */
+body.dark {
+  --cinzaClaro: #121212;         /* Fundo principal escuro */
+  --cinzaMedio: #2a2a2a;         /* Fundo de elementos secundários */
+  --branco: #1e1e1e;             /* Fundo dos cartões e modais */
+  --cinzaEscuroTexto: #e0e0e0;   /* Cor do texto principal */
+  --azulEscuro: #1e1e1e;         /* Cor alternativa para fundos */
+}
+
+/* Ajustes específicos para elementos no modo escuro */
+
+/* Garante que o texto da tabela seja legível */
+body.dark table {
+  color: var(--cinzaEscuroTexto);
+}
+
+/* Garante que o texto do link ativo na sidebar permaneça branco */
+body.dark .nav-link.active {
+  color: #FFFFFF !important;
+}
+
+/* Garante que o texto dos botões principais permaneça branco */
+body.dark .action-button,
+body.dark .btn-edit,
+body.dark .btn-delete,
+body.dark .modal-content form button {
+  color: #FFFFFF !important;
+}
+
+/* Opcional: Adiciona um leve brilho aos botões no modo escuro para destacá-los */
+body.dark .action-button:hover,
+body.dark .btn-edit:hover,
+body.dark .btn-delete:hover,
+body.dark .modal-content form button:hover {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}

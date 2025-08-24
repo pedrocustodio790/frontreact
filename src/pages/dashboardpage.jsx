@@ -1,35 +1,22 @@
-// src/pages/DashboardPage.jsx
+// src/pages/dashboardpage.jsx
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
+// Imports dos seus componentes
 import Sidebar from '../components/sidebar';
 import KpiCard from '../components/kpicard';
-import ActionList from '../components/actionList';
+import ActionList from '../components/actionlist';
 import CategoryChart from '../components/categoriachart';
-
-
-const apiUrl = 'http://localhost:8080/api/componentes';
 
 function DashboardPage() {
   const [componentes, setComponentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Lógica para buscar os dados (com o token JWT)
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('jwt-token');
-      if (!token) {
-        setLoading(false);
-        // A rota protegida já deve redirecionar, mas é uma segurança
-        return;
-      }
       try {
-        const response = await axios.get(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await api.get('/api/componentes');
         setComponentes(response.data);
       } catch (error) {
         console.error("Erro ao buscar dados!", error);
@@ -92,11 +79,9 @@ function DashboardPage() {
               />
             </div>
             
-            {/* MUDANÇA: A SEÇÃO DO GRÁFICO FOI ADICIONADA AQUI */}
             <div className="charts-grid" style={{ marginTop: '2rem' }}>
               <CategoryChart componentes={componentes} />
             </div>
-
           </>
         )}
       </main>
