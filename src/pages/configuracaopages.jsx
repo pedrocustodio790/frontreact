@@ -3,15 +3,16 @@ import { jwtDecode } from 'jwt-decode';
 import api from '../services/api';
 import { ThemeContext } from '../context/ThemeContext';
 import Sidebar from '../components/sidebar';
-import UserManagement from '../components/usermanagement'; // Importa o novo componente
+import UserManagement from '../components/usermanagement';
+import ModalAddUser from '../components/mudaluser'; // CORREÇÃO AQUI
 
 function ConfiguracoesPage() {
   const { theme, toggleTheme } = useContext(ThemeContext);
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState([]);
+  const [isModalVisible, setModalVisible] = useState(false);
 
-  // Este useEffect verifica o cargo do utilizador e busca a lista de utilizadores se for admin
   useEffect(() => {
     const token = localStorage.getItem('jwt-token');
     if (token) {
@@ -19,10 +20,9 @@ function ConfiguracoesPage() {
         const decodedToken = jwtDecode(token);
         const userRoles = decodedToken.roles || [];
         
-        // Verifica se o utilizador tem o cargo de ADMIN
         if (userRoles.includes('ROLE_ADMIN')) {
           setIsAdmin(true);
-          fetchUsers(); // Se for admin, busca a lista de utilizadores
+          fetchUsers();
         }
       } catch (error) {
         console.error("Erro ao descodificar o token:", error);
@@ -36,7 +36,6 @@ function ConfiguracoesPage() {
       setUsers(response.data);
     } catch (error) {
       console.error("Erro ao buscar utilizadores:", error);
-      alert('Você não tem permissão para ver esta lista.');
     }
   };
 
@@ -44,7 +43,7 @@ function ConfiguracoesPage() {
     if (window.confirm('Tem a certeza de que deseja excluir este utilizador?')) {
       try {
         await api.delete(`/api/users/${id}`);
-        fetchUsers(); // Recarrega a lista após a exclusão
+        fetchUsers();
       } catch (error) {
         console.error("Erro ao excluir utilizador:", error);
         alert('Falha ao excluir o utilizador.');
@@ -60,9 +59,8 @@ function ConfiguracoesPage() {
           <h1>Configurações</h1>
         </div>
 
-        {/* Secção de Aparência (já existente) */}
+        {/* Secção de Aparência */}
         <div className="settings-section">
-          <h2>Preferências de Aparência</h2>
           <div className="setting-item">
             <span>Modo Escuro</span>
             <label className="switch">
@@ -72,14 +70,25 @@ function ConfiguracoesPage() {
           </div>
         </div>
 
-        {/* Secção de Gestão de Utilizadores (só aparece para admins) */}
+        {/* Secção de Gestão de Utilizadores */}
         {isAdmin && (
           <div className="settings-section">
-            <h2>Gestão de Utilizadores</h2>
+            <div className="section-header">
+              <h2>Gestão de Utilizadores</h2>
+              <button className="action-button" onClick={() => setModalVisible(true)}>
+                Adicionar Utilizador
+              </button>
+            </div>
             <UserManagement users={users} onDeleteUser={handleDeleteUser} />
           </div>
         )}
       </main>
+
+      <ModalAddUser 
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        onUserAdded={fetchUsers}
+      />
     </div>
   );
 }
