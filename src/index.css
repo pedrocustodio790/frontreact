@@ -184,18 +184,15 @@ td.actions button:hover {
 .btn-delete {
   background-color: var(--vermelho-alerta);
 }
-/* Define as variáveis de cor e estilos base para o tema escuro */
 body.dark {
-  --cinzaClaro: #121212;         /* Fundo principal escuro */
-  --cinzaMedio: #2a2a2a;         /* Fundo de elementos secundários */
-  --branco: #1e1e1e;             /* Fundo dos cartões e modais */
-  --cinzaEscuroTexto: #e0e0e0;   /* Cor do texto principal */
-  --azulEscuro: #1e1e1e;         /* Cor alternativa para fundos */
+  --cinzaClaro: #121212;
+  --cinzaMedio: #2a2a2a;
+  --branco: #1e1e1e;
+  --cinzaEscuroTexto: #e0e0e0;
+  --azulEscuro: #1e1e1e;
 }
 
-/* Ajustes específicos para elementos no modo escuro */
-
-/* Garante que o texto da tabela seja legível */
+/* Garante que o texto da tabela seja legível no modo escuro */
 body.dark table {
   color: var(--cinzaEscuroTexto);
 }
@@ -213,10 +210,11 @@ body.dark .modal-content form button {
   color: #FFFFFF !important;
 }
 
-/* Opcional: Adiciona um leve brilho aos botões no modo escuro para destacá-los */
-body.dark .action-button:hover,
-body.dark .btn-edit:hover,
-body.dark .btn-delete:hover,
-body.dark .modal-content form button:hover {
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+/* Ajusta as cores de fundo dos botões para terem melhor contraste */
+body.dark .btn-edit {
+  background-color: #FFC107; /* Amarelo mais vivo */
+}
+
+body.dark .btn-delete {
+  background-color: #E53935; /* Vermelho mais vivo */
 }
