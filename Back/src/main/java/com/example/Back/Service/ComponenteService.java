@@ -1,3 +1,4 @@
+
 package com.example.Back.Service;
 
 import com.example.Back.Entity.Componente;
@@ -36,13 +37,11 @@ public class ComponenteService {
     public Componente salvarComponente(Componente componente) {
         if (componente.getId() != null) {
             // É uma ATUALIZAÇÃO
-            // 1. BUSCA a entidade existente do banco de dados.
             Componente componenteExistente = componenteRepository.findById(componente.getId())
                     .orElseThrow(() -> new RuntimeException("Componente não encontrado"));
 
             int quantidadeAntiga = componenteExistente.getQuantidade();
 
-            // 2. ATUALIZA apenas os campos que vieram do frontend.
             componenteExistente.setNome(componente.getNome());
             componenteExistente.setCodigoPatrimonio(componente.getCodigoPatrimonio());
             componenteExistente.setQuantidade(componente.getQuantidade());
@@ -50,7 +49,6 @@ public class ComponenteService {
             componenteExistente.setCategoria(componente.getCategoria());
             componenteExistente.setObservacoes(componente.getObservacoes());
 
-            // 3. SALVA a entidade que já estava a ser monitorizada, agora com os dados atualizados.
             Componente componenteSalvo = componenteRepository.save(componenteExistente);
 
             int quantidadeNova = componenteSalvo.getQuantidade();
@@ -63,9 +61,32 @@ public class ComponenteService {
             }
             return componenteSalvo;
         } else {
-            // É uma CRIAÇÃO (esta parte já estava correta)
+            // É uma CRIAÇÃO
             Componente componenteSalvo = componenteRepository.save(componente);
             criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
             return componenteSalvo;
         }
     }
+
+    public void deletarComponente(Long id) {
+        if (!componenteRepository.existsById(id)) {
+            throw new RuntimeException("Componente não encontrado com o id: " + id);
+        }
+        componenteRepository.deleteById(id);
+    }
+
+    // MÉTODO QUE ESTAVA EM FALTA
+    private void criarRegistroHistorico(Componente componente, TipoMovimentacao tipo, int quantidade) {
+        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Historico historico = new Historico();
+        historico.setComponente(componente);
+        historico.setTipo(tipo);
+        historico.setQuantidade(quantidade);
+        historico.setUsuario(emailUsuario);
+        historico.setDataHora(LocalDateTime.now());
+        historico.setCodigoMovimentacao(UUID.randomUUID().toString());
+
+        historicoRepository.save(historico);
+    }
+}
