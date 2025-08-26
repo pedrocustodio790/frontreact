@@ -1,5 +1,3 @@
-// src/pages/dashboardpage.jsx
-
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
@@ -10,16 +8,20 @@ import ActionList from '../components/actionlist';
 import CategoryChart from '../components/categoriachart';
 
 function DashboardPage() {
-  const [componentes, setComponentes] = useState([]);
+  // CORREÇÃO: Inicia o estado com um array vazio para evitar erros
+  const [componentes, setComponentes] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await api.get('/api/componentes');
-        setComponentes(response.data);
+        // Garante que estamos a colocar um array no estado, mesmo que a API retorne algo inesperado
+        if (Array.isArray(response.data)) {
+            setComponentes(response.data);
+        }
       } catch (error) {
-        console.error("Erro ao buscar dados!", error);
+        console.error("Erro ao buscar componentes:", error);
       } finally {
         setLoading(false);
       }
@@ -38,11 +40,11 @@ function DashboardPage() {
       <main className="main-content">
         <div className="header-dashboard">
           <h1>Dashboard</h1>
-          <p>Olá, Usuário! Aqui está um resumo inteligente do seu estoque.</p>
+          <p>Olá, Utilizador! Aqui está um resumo inteligente do seu stock.</p>
         </div>
 
         {loading ? (
-          <p>Carregando dados do backend...</p>
+          <p>A carregar dados do backend...</p>
         ) : (
           <>
             <div className="dashboard-grid">
@@ -52,7 +54,7 @@ function DashboardPage() {
                 description="Componentes cadastrados" 
               />
               <KpiCard 
-                title="Itens em Estoque" 
+                title="Itens em Stock" 
                 value={totalUnidades} 
                 description="Unidades totais" 
               />
@@ -70,11 +72,11 @@ function DashboardPage() {
             
             <div className="action-grid">
               <ActionList 
-                title="Itens em Falta (Estoque Zerado)" 
+                title="Itens em Falta (Stock Zerado)" 
                 items={itensEmFalta} 
               />
               <ActionList 
-                title="Itens com Estoque Baixo" 
+                title="Itens com Stock Baixo" 
                 items={itensEstoqueBaixo} 
               />
             </div>

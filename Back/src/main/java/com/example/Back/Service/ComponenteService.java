@@ -36,15 +36,25 @@ public class ComponenteService {
     public Componente salvarComponente(Componente componente) {
         if (componente.getId() != null) {
             // É uma ATUALIZAÇÃO
+            // 1. BUSCA a entidade existente do banco de dados.
             Componente componenteExistente = componenteRepository.findById(componente.getId())
                     .orElseThrow(() -> new RuntimeException("Componente não encontrado"));
 
             int quantidadeAntiga = componenteExistente.getQuantidade();
-            int quantidadeNova = componente.getQuantidade();
-            int diferenca = quantidadeNova - quantidadeAntiga;
 
-            // Salva a alteração no componente primeiro
-            Componente componenteSalvo = componenteRepository.save(componente);
+            // 2. ATUALIZA apenas os campos que vieram do frontend.
+            componenteExistente.setNome(componente.getNome());
+            componenteExistente.setCodigoPatrimonio(componente.getCodigoPatrimonio());
+            componenteExistente.setQuantidade(componente.getQuantidade());
+            componenteExistente.setLocalizacao(componente.getLocalizacao());
+            componenteExistente.setCategoria(componente.getCategoria());
+            componenteExistente.setObservacoes(componente.getObservacoes());
+
+            // 3. SALVA a entidade que já estava a ser monitorizada, agora com os dados atualizados.
+            Componente componenteSalvo = componenteRepository.save(componenteExistente);
+
+            int quantidadeNova = componenteSalvo.getQuantidade();
+            int diferenca = quantidadeNova - quantidadeAntiga;
 
             if (diferenca > 0) {
                 criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, diferenca);
@@ -53,35 +63,9 @@ public class ComponenteService {
             }
             return componenteSalvo;
         } else {
-            // É uma CRIAÇÃO
-            // 1. Salva o componente primeiro para que ele receba um ID do banco de dados
+            // É uma CRIAÇÃO (esta parte já estava correta)
             Componente componenteSalvo = componenteRepository.save(componente);
-            // 2. Agora, cria o registo de histórico com o componente já salvo (e com ID)
             criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
             return componenteSalvo;
         }
     }
-
-    public void deletarComponente(Long id) {
-        if (!componenteRepository.existsById(id)) {
-            throw new RuntimeException("Componente não encontrado com o id: " + id);
-        }
-        componenteRepository.deleteById(id);
-    }
-
-    private void criarRegistroHistorico(Componente componente, TipoMovimentacao tipo, int quantidade) {
-        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Historico historico = new Historico();
-        historico.setComponente(componente);
-        historico.setTipo(tipo);
-        historico.setQuantidade(quantidade);
-        historico.setUsuario(emailUsuario);
-        historico.setDataHora(LocalDateTime.now());
-
-        // Gera um código único para a movimentação
-        historico.setCodigoMovimentacao(UUID.randomUUID().toString());
-
-        historicoRepository.save(historico);
-    }
-}

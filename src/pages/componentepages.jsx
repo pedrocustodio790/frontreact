@@ -3,7 +3,8 @@ import api from '../services/api';
 import Sidebar from '../components/sidebar';
 import ComponentesTable from '../components/componentestable';
 import ModalComponente from '../components/modalcomponente';
-import { toast } from 'react-toastify'; 
+import { toast } from 'react-toastify';
+import { ClipLoader } from 'react-spinners'; // 1. Importa o spinner
 
 function ComponentesPage() {
   const [componentes, setComponentes] = useState([]);
@@ -17,6 +18,7 @@ function ComponentesPage() {
       setComponentes(response.data);
     } catch (error) {
       console.error("Erro ao buscar componentes:", error);
+      toast.error("Não foi possível carregar os componentes.");
     } finally {
       setLoading(false);
     }
@@ -31,7 +33,19 @@ function ComponentesPage() {
     setModalVisible(true);
   };
 
-
+  const handleDelete = async (id) => {
+    const confirmar = window.confirm("Você tem certeza que deseja excluir este componente?");
+    if (confirmar) {
+      try {
+        await api.delete(`/api/componentes/${id}`);
+        toast.success('Componente excluído com sucesso!');
+        fetchData(); 
+      } catch (error) {
+        console.error("Erro ao excluir componente:", error);
+        toast.error('Falha ao excluir o componente.');
+      }
+    }
+  };
 
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -54,8 +68,11 @@ function ComponentesPage() {
           </button>
         </div>
 
+        {/* Lógica de carregamento atualizada */}
         {loading ? (
-          <p>Carregando componentes...</p>
+          <div className="loading-spinner-container">
+            <ClipLoader color={"var(--vermelhoSenai)"} loading={loading} size={50} />
+          </div>
         ) : (
           <ComponentesTable 
             componentes={componentes} 

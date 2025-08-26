@@ -229,3 +229,10 @@ body.dark .btn-delete {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
 }
+/* Estilo para o contêiner do spinner de carregamento */
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh; /* Ocupa uma boa parte da altura da área de conteúdo */
+}
