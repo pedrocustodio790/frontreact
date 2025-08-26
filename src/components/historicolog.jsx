@@ -23,7 +23,7 @@ function HistoricoLog({ historicoProcessado }) {
         <ul className="timeline">
           {historicoProcessado.map(item => (
             <li key={item.id} className="timeline-item">
-              <div className={`timeline-icon ${item.tipo.toLowerCase()}`}>
+              <div className={`timeline-icon ${item.tipo?.toLowerCase()}`}>
                 {item.tipo === 'ENTRADA' ? <ArrowUpCircle /> : <ArrowDownCircle />}
               </div>
               <div className="timeline-content">

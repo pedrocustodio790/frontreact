@@ -3,6 +3,7 @@ import api from '../services/api';
 import Sidebar from '../components/sidebar';
 import ComponentesTable from '../components/componentestable';
 import ModalComponente from '../components/modalcomponente';
+import { toast } from 'react-toastify'; 
 
 function ComponentesPage() {
   const [componentes, setComponentes] = useState([]);
@@ -30,18 +31,7 @@ function ComponentesPage() {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmar = window.confirm("Você tem certeza que deseja excluir este componente?");
-    if (confirmar) {
-      try {
-        await api.delete(`/api/componentes/${id}`);
-        fetchData(); 
-      } catch (error) {
-        console.error("Erro ao excluir componente:", error);
-        alert("Falha ao excluir o componente.");
-      }
-    }
-  };
+
 
   const handleCloseModal = () => {
     setModalVisible(false);

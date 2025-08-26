@@ -1,15 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import App from "./App.jsx";
 import LoginPage from "./pages/loginpage.jsx";
 import DashboardPage from "./pages/dashboardpage.jsx";
-import ComponentesPage from "./pages/componentepages.jsx";
+import ComponentesPage from './pages/componentepages.jsx';
 import HistoricoPage from "./pages/historicopage.jsx";
-import ConfiguracoesPage from "./pages/configuracaopages.jsx"; // 1. Importe a nova página
+import ConfiguracoesPage from './pages/configuracaopages.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx'; 
 import "./index.css";
-import { ThemeProvider } from './context/themecontext'; 
 
 const router = createBrowserRouter([
   {
@@ -19,7 +21,7 @@ const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "/componentes", element: <ComponentesPage /> },
       { path: "/historico", element: <HistoricoPage /> },
-      { path: "/configuracoes", element: <ConfiguracoesPage /> }, // 2. Adicione a nova rota
+      { path: "/configuracoes", element: <ConfiguracoesPage /> },
     ],
   },
   {
@@ -27,11 +29,17 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
 ]);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* 2. Envolva o RouterProvider com o ThemeProvider */}
     <ThemeProvider>
       <RouterProvider router={router} />
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={3000} 
+        hideProgressBar={false}
+        theme="colored"
+      />
     </ThemeProvider>
   </React.StrictMode>
 );

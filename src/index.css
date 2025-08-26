@@ -218,3 +218,14 @@ body.dark .btn-edit {
 body.dark .btn-delete {
   background-color: #E53935; /* Vermelho mais vivo */
 }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header .action-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}

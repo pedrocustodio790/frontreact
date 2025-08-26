@@ -28,19 +28,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permite acesso público às rotas de autenticação
+                        // Permite acesso público a todas as rotas de autenticação
                         .requestMatchers("/api/auth/**").permitAll()
                         // Exige que todas as outras requisições sejam autenticadas
                         .anyRequest().authenticated()
                 )
-                // Adiciona nosso filtro de token antes do filtro padrão do Spring
+                // Adiciona o nosso filtro de token antes do filtro padrão do Spring
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        // Este bean é necessário para que o Spring gerencie a autenticação corretamente
+        // Este bean é essencial para que o Spring gira a autenticação corretamente
         return authenticationConfiguration.getAuthenticationManager();
     }
 

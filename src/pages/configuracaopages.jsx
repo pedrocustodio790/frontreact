@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import api from '../services/api';
-import { ThemeContext } from '../context/ThemeContext';
+import { ThemeContext } from '../context/ThemeContext.jsx';
 import Sidebar from '../components/sidebar';
 import UserManagement from '../components/usermanagement';
-import ModalAddUser from '../components/mudaluser'; // CORREÇÃO AQUI
+import ModalAddUser from '../components/mudaluser.jsx'; // CORREÇÃO AQUI
 
 function ConfiguracoesPage() {
   const { theme, toggleTheme } = useContext(ThemeContext);
