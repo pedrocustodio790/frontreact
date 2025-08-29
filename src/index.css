@@ -1,36 +1,52 @@
 /* ================================================== */
-/* CSS Global - src/index.css                         */
+/* CSS Global - src/index.css                           */
 /* ================================================== */
-body.dark {
-  --cinzaClaro: #121212;
-  --cinzaMedio: #2a2a2a;
-  --branco: #1e1e1e;
-  --cinzaEscuroTexto: #e0e0e0;
-  --azulEscuro: #1e1e1e;
-}
 
-/* Ajuste para a cor do texto do link ativo no modo escuro */
-body.dark .nav-link.active {
-  color: var(--branco) !important;
-}
-
-body.dark table {
-  color: var(--cinzaEscuroTexto);
-}
 /* 1. Variáveis de Cor e Estilo (Paleta do Projeto) */
+
+/* Modo Claro (Padrão) */
 :root {
+  /* Cores base */
   --vermelhoSenai: #C00000;
-  --branco: #FFFFFF;
-  --cinzaClaro: #f4f4f4;
-  --cinzaMedio: #e0e0e0;
-  --cinzaEscuroTexto: #333;
-  --azulEscuro: #1A2E44;
+  --azulEscuroOriginal: #1A2E44;
   --amareloOuro: #FFD700;
   --vermelho-alerta: #dc3545;
+  --branco-puro: #FFFFFF;
+  --preto-puro: #000000;
+
+  /* Variáveis Semânticas (por função) */
+  --cor-fundo-primario: #f4f4f4;      /* Fundo principal da página */
+  --cor-fundo-secundario: #FFFFFF;   /* Fundo de cards, tabelas, modais */
+  --cor-fundo-sidebar: var(--azulEscuroOriginal);
+  --cor-borda: #e0e0e0;
+
+  --cor-texto-primario: #333;         /* Texto principal do corpo */
+  --cor-texto-secundario: var(--azulEscuroOriginal); /* Títulos, cabeçalhos de tabela */
+  --cor-texto-sidebar: var(--branco-puro);
+  --cor-texto-botao-principal: var(--branco-puro);
+
+  /* Estilos Gerais */
   --border-radius-padrao: 8px;
 }
 
-/* 2. Reset Básico e Padrões do Corpo */
+/* Modo Escuro */
+body.dark {
+  /* Reatribuição das variáveis semânticas para o modo escuro */
+  --cor-fundo-primario: #121212;
+  --cor-fundo-secundario: #1e1e1e;
+  --cor-fundo-sidebar: #2a2a2a; /* Um cinza escuro para diferenciar do fundo */
+  --cor-borda: #333;
+
+  --cor-texto-primario: #e0e0e0;
+  --cor-texto-secundario: #f4f4f4;
+  --cor-texto-sidebar: #e0e0e0;
+  
+  /* Ajuste de cores de destaque para melhor contraste */
+  --amareloOuro: #FFC107;
+  --vermelho-alerta: #E53935;
+}
+
+/* 3. Reset Básico e Padrões do Corpo */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -39,11 +55,12 @@ body.dark table {
 }
 
 body {
-  background-color: var(--cinzaClaro);
-  color: var(--cinzaEscuroTexto);
+  background-color: var(--cor-fundo-primario);
+  color: var(--cor-texto-primario);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* 3. Layout Principal da Aplicação */
+/* 4. Layout Principal da Aplicação */
 .app-container {
   display: flex;
 }
@@ -55,11 +72,11 @@ body {
   overflow-y: auto;
 }
 
-/* 4. Estilos do Sidebar */
+/* 5. Estilos do Sidebar */
 .sidebar {
   width: 250px;
-  background-color: var(--azulEscuro);
-  color: var(--branco);
+  background-color: var(--cor-fundo-sidebar);
+  color: var(--cor-texto-sidebar);
   height: 100vh;
   padding: 1.5rem 1rem;
   display: flex;
@@ -83,7 +100,7 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  color: var(--branco);
+  color: var(--cor-texto-sidebar);
   text-decoration: none;
   border-radius: var(--border-radius-padrao);
   margin-bottom: 0.5rem;
@@ -96,28 +113,29 @@ body {
 
 .nav-link.active {
   background-color: var(--vermelhoSenai);
+  color: var(--branco-puro); /* Texto do link ativo sempre branco */
   font-weight: bold;
 }
 
-/* 5. Estilos do Cabeçalho da Página (Dashboard/Componentes) */
+/* 6. Estilos do Cabeçalho da Página */
 .header-dashboard {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--cinzaMedio);
+  border-bottom: 1px solid var(--cor-borda);
 }
 
 .header-dashboard h1 {
   font-size: 2rem;
-  color: var(--azulEscuro);
+  color: var(--cor-texto-secundario);
 }
 
-/* 6. Botão de Ação Principal */
+/* 7. Botão de Ação Principal */
 .action-button {
   background-color: var(--vermelhoSenai);
-  color: var(--branco);
+  color: var(--cor-texto-botao-principal);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: var(--border-radius-padrao);
@@ -132,14 +150,19 @@ body {
   transform: translateY(-2px);
 }
 
-/* 7. Estilos da Tabela de Componentes */
+/* 8. Estilos da Tabela de Componentes */
 .table-container {
   margin-top: 2rem;
-  background-color: var(--branco);
+  background-color: var(--cor-fundo-secundario);
   border-radius: var(--border-radius-padrao);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 1.5rem;
   overflow-x: auto;
+  transition: background-color 0.3s;
+}
+
+body.dark .table-container {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 table {
@@ -150,16 +173,20 @@ table {
 th, td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--cinzaMedio);
+  border-bottom: 1px solid var(--cor-borda);
 }
 
 thead th {
   font-weight: bold;
-  color: var(--azulEscuro);
+  color: var(--cor-texto-secundario);
 }
 
 tbody tr:hover {
-  background-color: #f9f9f9;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+body.dark tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 td.actions button {
@@ -168,7 +195,7 @@ td.actions button {
   border-radius: 5px;
   cursor: pointer;
   margin-right: 0.5rem;
-  color: var(--branco);
+  color: var(--branco-puro); /* Texto sempre branco para contraste */
   font-weight: bold;
   transition: opacity 0.2s;
 }
@@ -179,45 +206,14 @@ td.actions button:hover {
 
 .btn-edit {
   background-color: var(--amareloOuro);
+  color: var(--preto-puro); /* Amarelo fica melhor com texto preto */
 }
 
 .btn-delete {
   background-color: var(--vermelho-alerta);
 }
-body.dark {
-  --cinzaClaro: #121212;
-  --cinzaMedio: #2a2a2a;
-  --branco: #1e1e1e;
-  --cinzaEscuroTexto: #e0e0e0;
-  --azulEscuro: #1e1e1e;
-}
 
-/* Garante que o texto da tabela seja legível no modo escuro */
-body.dark table {
-  color: var(--cinzaEscuroTexto);
-}
-
-/* Garante que o texto do link ativo na sidebar permaneça branco */
-body.dark .nav-link.active {
-  color: #FFFFFF !important;
-}
-
-/* Garante que o texto dos botões principais permaneça branco */
-body.dark .action-button,
-body.dark .btn-edit,
-body.dark .btn-delete,
-body.dark .modal-content form button {
-  color: #FFFFFF !important;
-}
-
-/* Ajusta as cores de fundo dos botões para terem melhor contraste */
-body.dark .btn-edit {
-  background-color: #FFC107; /* Amarelo mais vivo */
-}
-
-body.dark .btn-delete {
-  background-color: #E53935; /* Vermelho mais vivo */
-}
+/* 9. Estilos para Section Header */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -229,10 +225,11 @@ body.dark .btn-delete {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
 }
-/* Estilo para o contêiner do spinner de carregamento */
+
+/* 10. Estilo para o contêiner do spinner de carregamento */
 .loading-spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 60vh; /* Ocupa uma boa parte da altura da área de conteúdo */
+  height: 60vh;
 }

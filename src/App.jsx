@@ -14,9 +14,7 @@ function App() {
     }
   }, [navigate]); // Roda essa verificação sempre que a página carregar
 
-  // O <Outlet /> é um espaço reservado onde o React Router vai renderizar
-  // a página correta (DashboardPage, ComponentesPage, etc.) que está
-  // definida no seu arquivo main.jsx.
+
   return <Outlet />;
 }
 

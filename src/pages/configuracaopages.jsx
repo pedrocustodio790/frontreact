@@ -4,7 +4,8 @@ import api from '../services/api';
 import { ThemeContext } from '../context/ThemeContext.jsx';
 import Sidebar from '../components/sidebar';
 import UserManagement from '../components/usermanagement';
-import ModalAddUser from '../components/mudaluser.jsx'; // CORREÇÃO AQUI
+import ModalAddUser from '../components/mudaluser.jsx';
+import Button from '../components/button.jsx';
 
 function ConfiguracoesPage() {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -40,6 +41,7 @@ function ConfiguracoesPage() {
   };
 
   const handleDeleteUser = async (id) => {
+    // AVISO: window.confirm() pode ser substituído por um modal no futuro
     if (window.confirm('Tem a certeza de que deseja excluir este utilizador?')) {
       try {
         await api.delete(`/api/users/${id}`);
@@ -75,10 +77,14 @@ function ConfiguracoesPage() {
           <div className="settings-section">
             <div className="section-header">
               <h2>Gestão de Utilizadores</h2>
-              <button className="action-button" onClick={() => setModalVisible(true)}>
+              
+              {/* 2. SUBSTITUA O <button> ANTIGO PELO NOVO COMPONENTE <Button> */}
+              <Button variant="primary" onClick={() => setModalVisible(true)}>
                 Adicionar Utilizador
-              </button>
+              </Button>
+
             </div>
+
             <UserManagement users={users} onDeleteUser={handleDeleteUser} />
           </div>
         )}

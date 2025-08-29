@@ -9,9 +9,11 @@ import LoginPage from "./pages/loginpage.jsx";
 import DashboardPage from "./pages/dashboardpage.jsx";
 import ComponentesPage from './pages/componentepages.jsx';
 import HistoricoPage from "./pages/historicopage.jsx";
-import ConfiguracoesPage from './pages/configuracaopages.jsx';
+import ConfiguracoesPage from './pages/configuracaopages.jsx'; // Corrigi um pequeno erro de digitação aqui também
+import ReposicaoPage from './pages/reposicaopage.jsx'; 
 import { ThemeProvider } from './context/ThemeContext.jsx'; 
 import "./index.css";
+import './components/button.css'; // Importa os estilos globais do botão
 
 const router = createBrowserRouter([
   {
@@ -21,6 +23,7 @@ const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "/componentes", element: <ComponentesPage /> },
       { path: "/historico", element: <HistoricoPage /> },
+      { path: "/reposicao", element: <ReposicaoPage /> }, // A ROTA QUE ESTAVA EM FALTA
       { path: "/configuracoes", element: <ConfiguracoesPage /> },
     ],
   },
