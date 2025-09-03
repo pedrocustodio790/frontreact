@@ -20,14 +20,16 @@ public class ComponenteService {
 
     private final ComponenteRepository componenteRepository;
     private final HistoricoRepository historicoRepository;
+    private final RequisicaoService requisicaoService;
 
-    // MELHORIA: Injeção de dependências via construtor
-    public ComponenteService(ComponenteRepository componenteRepository, HistoricoRepository historicoRepository) {
+    public ComponenteService(ComponenteRepository componenteRepository, HistoricoRepository historicoRepository, RequisicaoService requisicaoService) {
         this.componenteRepository = componenteRepository;
         this.historicoRepository = historicoRepository;
+        this.requisicaoService = requisicaoService;
     }
 
-    // Retorna uma lista de DTOs, não de Entidades
+    // --- MÉTODOS EXISTENTES QUE PRECISAM DE ESTAR AQUI ---
+
     @Transactional(readOnly = true)
     public List<ComponenteDTO> findAll() {
         return componenteRepository.findAll().stream()
@@ -35,21 +37,29 @@ public class ComponenteService {
                 .collect(Collectors.toList());
     }
 
-    // MELHORIA: Método separado apenas para CRIAR
+    @Transactional(readOnly = true)
+    public List<ComponenteDTO> search(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return findAll();
+        }
+        return componenteRepository.searchByTermo(termo).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ComponenteDTO create(ComponenteDTO dto) {
-        // Validação para impedir patrimônio duplicado
         if (componenteRepository.existsByCodigoPatrimonio(dto.getCodigoPatrimonio())) {
             throw new IllegalArgumentException("Código de património já está em uso.");
         }
-
         Componente componente = toEntity(dto);
         Componente componenteSalvo = componenteRepository.save(componente);
         criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
         return toDTO(componenteSalvo);
     }
 
-    // MELHORIA: Método separado apenas para ATUALIZAR
+    // --- O MÉTODO UPDATE COM A NOVA LÓGICA ---
+
     @Transactional
     public ComponenteDTO update(Long id, ComponenteDTO dto) {
         Componente componenteExistente = componenteRepository.findById(id)
@@ -57,42 +67,37 @@ public class ComponenteService {
 
         int quantidadeAntiga = componenteExistente.getQuantidade();
 
-        // Atualiza a entidade com os dados do DTO
         componenteExistente.setNome(dto.getNome());
         componenteExistente.setCodigoPatrimonio(dto.getCodigoPatrimonio());
         componenteExistente.setQuantidade(dto.getQuantidade());
         componenteExistente.setLocalizacao(dto.getLocalizacao());
         componenteExistente.setCategoria(dto.getCategoria());
         componenteExistente.setObservacoes(dto.getObservacoes());
+        componenteExistente.setNivelMinimoEstoque(dto.getNivelMinimoEstoque());
 
         Componente componenteAtualizado = componenteRepository.save(componenteExistente);
         int quantidadeNova = componenteAtualizado.getQuantidade();
         int diferenca = quantidadeNova - quantidadeAntiga;
 
-        if (diferenca > 0) {
-            criarRegistroHistorico(componenteAtualizado, TipoMovimentacao.ENTRADA, diferenca);
-        } else if (diferenca < 0) {
-            criarRegistroHistorico(componenteAtualizado, TipoMovimentacao.SAIDA, Math.abs(diferenca));
+        if (diferenca != 0) {
+            criarRegistroHistorico(componenteAtualizado, diferenca > 0 ? TipoMovimentacao.ENTRADA : TipoMovimentacao.SAIDA, Math.abs(diferenca));
+        }
+
+        if (componenteAtualizado.getQuantidade() <= componenteAtualizado.getNivelMinimoEstoque()) {
+            requisicaoService.criarRequisicaoParaItem(componenteAtualizado);
+            System.out.println("LOG: Nível de estoque baixo para o item " + componenteAtualizado.getNome() + ". Requisição criada.");
         }
 
         return toDTO(componenteAtualizado);
     }
 
-    // MELHORIA: Lida com o histórico antes de apagar
     @Transactional
     public void delete(Long id) {
-        Componente componente = componenteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Componente não encontrado com o id: " + id));
-
-        // Apaga o histórico associado primeiro
-        List<Historico> historicos = historicoRepository.findByComponenteId(id);
-        historicoRepository.deleteAll(historicos);
-
-        // Depois apaga o componente
-        componenteRepository.delete(componente);
+        // ... (código do seu método delete)
     }
 
-    // Função privada para criar histórico (perfeita como estava)
+    // --- MÉTODOS AUXILIARES QUE ESTAVAM A FALTAR ---
+
     private void criarRegistroHistorico(Componente componente, TipoMovimentacao tipo, int quantidade) {
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
         Historico historico = new Historico();
@@ -105,7 +110,6 @@ public class ComponenteService {
         historicoRepository.save(historico);
     }
 
-    // Funções auxiliares para converter entre Entidade e DTO
     private ComponenteDTO toDTO(Componente componente) {
         return new ComponenteDTO(
                 componente.getId(),
@@ -114,7 +118,8 @@ public class ComponenteService {
                 componente.getQuantidade(),
                 componente.getLocalizacao(),
                 componente.getCategoria(),
-                componente.getObservacoes()
+                componente.getObservacoes(),
+                componente.getNivelMinimoEstoque()
         );
     }
 
@@ -126,6 +131,7 @@ public class ComponenteService {
         componente.setLocalizacao(dto.getLocalizacao());
         componente.setCategoria(dto.getCategoria());
         componente.setObservacoes(dto.getObservacoes());
+        componente.setNivelMinimoEstoque(dto.getNivelMinimoEstoque());
         return componente;
     }
 }

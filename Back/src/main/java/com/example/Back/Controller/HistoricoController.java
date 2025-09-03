@@ -3,6 +3,8 @@ package com.example.Back.Controller;
 import com.example.Back.Dto.HistoricoDTO;
 import com.example.Back.Service.HistoricoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,15 @@ public class HistoricoController {
         return new ResponseEntity<>(novoHistorico, HttpStatus.CREATED);
     }
 
+    @GetMapping
+    public ResponseEntity<Page<HistoricoDTO>> getHistorico(
+            // O Spring automaticamente pega os parâmetros ?page=X&size=Y da URL
+            @PageableDefault(size = 20, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<HistoricoDTO> historicoPage = historicoService.findAll(pageable);
+        return ResponseEntity.ok(historicoPage);
+    }
+}
     @PutMapping("/{id}")
     public ResponseEntity<HistoricoDTO> updateHistorico(@PathVariable Long id, @RequestBody HistoricoDTO historicoDetailsDto) {
         return historicoService.updateHistorico(id, historicoDetailsDto)
