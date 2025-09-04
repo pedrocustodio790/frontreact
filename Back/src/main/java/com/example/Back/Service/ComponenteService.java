@@ -28,21 +28,17 @@ public class ComponenteService {
         this.requisicaoService = requisicaoService;
     }
 
-    // --- MÉTODOS EXISTENTES QUE PRECISAM DE ESTAR AQUI ---
+    // --- MÉTODOS PÚBLICOS DO SERVIÇO ---
 
     @Transactional(readOnly = true)
-    public List<ComponenteDTO> findAll() {
-        return componenteRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ComponenteDTO> search(String termo) {
-        if (termo == null || termo.trim().isEmpty()) {
-            return findAll();
+    public List<ComponenteDTO> findAll(String termoDeBusca) {
+        List<Componente> componentes;
+        if (termoDeBusca == null || termoDeBusca.trim().isEmpty()) {
+            componentes = componenteRepository.findAll();
+        } else {
+            componentes = componenteRepository.searchByTermo(termoDeBusca);
         }
-        return componenteRepository.searchByTermo(termo).stream()
+        return componentes.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -52,13 +48,18 @@ public class ComponenteService {
         if (componenteRepository.existsByCodigoPatrimonio(dto.getCodigoPatrimonio())) {
             throw new IllegalArgumentException("Código de património já está em uso.");
         }
+
         Componente componente = toEntity(dto);
         Componente componenteSalvo = componenteRepository.save(componente);
         criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
+
+        // Verifica se o novo item já está abaixo do nível mínimo
+        if (componenteSalvo.getQuantidade() <= componenteSalvo.getNivelMinimoEstoque()) {
+            requisicaoService.criarRequisicaoParaItem(componenteSalvo);
+        }
+
         return toDTO(componenteSalvo);
     }
-
-    // --- O MÉTODO UPDATE COM A NOVA LÓGICA ---
 
     @Transactional
     public ComponenteDTO update(Long id, ComponenteDTO dto) {
@@ -67,6 +68,7 @@ public class ComponenteService {
 
         int quantidadeAntiga = componenteExistente.getQuantidade();
 
+        // Atualiza a entidade com os dados do DTO
         componenteExistente.setNome(dto.getNome());
         componenteExistente.setCodigoPatrimonio(dto.getCodigoPatrimonio());
         componenteExistente.setQuantidade(dto.getQuantidade());
@@ -85,7 +87,6 @@ public class ComponenteService {
 
         if (componenteAtualizado.getQuantidade() <= componenteAtualizado.getNivelMinimoEstoque()) {
             requisicaoService.criarRequisicaoParaItem(componenteAtualizado);
-            System.out.println("LOG: Nível de estoque baixo para o item " + componenteAtualizado.getNome() + ". Requisição criada.");
         }
 
         return toDTO(componenteAtualizado);
@@ -93,10 +94,16 @@ public class ComponenteService {
 
     @Transactional
     public void delete(Long id) {
-        // ... (código do seu método delete)
+        Componente componente = componenteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Componente não encontrado com o id: " + id));
+
+        List<Historico> historicos = historicoRepository.findByComponenteId(id);
+        historicoRepository.deleteAll(historicos);
+
+        componenteRepository.delete(componente);
     }
 
-    // --- MÉTODOS AUXILIARES QUE ESTAVAM A FALTAR ---
+    // --- MÉTODOS PRIVADOS AUXILIARES ---
 
     private void criarRegistroHistorico(Componente componente, TipoMovimentacao tipo, int quantidade) {
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
