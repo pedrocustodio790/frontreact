@@ -20,12 +20,11 @@ public class ComponenteService {
 
     private final ComponenteRepository componenteRepository;
     private final HistoricoRepository historicoRepository;
-    private final RequisicaoService requisicaoService;
 
-    public ComponenteService(ComponenteRepository componenteRepository, HistoricoRepository historicoRepository, RequisicaoService requisicaoService) {
+    // Construtor simplificado, sem o RequisicaoService
+    public ComponenteService(ComponenteRepository componenteRepository, HistoricoRepository historicoRepository) {
         this.componenteRepository = componenteRepository;
         this.historicoRepository = historicoRepository;
-        this.requisicaoService = requisicaoService;
     }
 
     // --- MÉTODOS PÚBLICOS DO SERVIÇO ---
@@ -48,16 +47,9 @@ public class ComponenteService {
         if (componenteRepository.existsByCodigoPatrimonio(dto.getCodigoPatrimonio())) {
             throw new IllegalArgumentException("Código de património já está em uso.");
         }
-
         Componente componente = toEntity(dto);
         Componente componenteSalvo = componenteRepository.save(componente);
         criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
-
-        // Verifica se o novo item já está abaixo do nível mínimo
-        if (componenteSalvo.getQuantidade() <= componenteSalvo.getNivelMinimoEstoque()) {
-            requisicaoService.criarRequisicaoParaItem(componenteSalvo);
-        }
-
         return toDTO(componenteSalvo);
     }
 
@@ -75,7 +67,6 @@ public class ComponenteService {
         componenteExistente.setLocalizacao(dto.getLocalizacao());
         componenteExistente.setCategoria(dto.getCategoria());
         componenteExistente.setObservacoes(dto.getObservacoes());
-        componenteExistente.setNivelMinimoEstoque(dto.getNivelMinimoEstoque());
 
         Componente componenteAtualizado = componenteRepository.save(componenteExistente);
         int quantidadeNova = componenteAtualizado.getQuantidade();
@@ -83,10 +74,6 @@ public class ComponenteService {
 
         if (diferenca != 0) {
             criarRegistroHistorico(componenteAtualizado, diferenca > 0 ? TipoMovimentacao.ENTRADA : TipoMovimentacao.SAIDA, Math.abs(diferenca));
-        }
-
-        if (componenteAtualizado.getQuantidade() <= componenteAtualizado.getNivelMinimoEstoque()) {
-            requisicaoService.criarRequisicaoParaItem(componenteAtualizado);
         }
 
         return toDTO(componenteAtualizado);
@@ -126,19 +113,19 @@ public class ComponenteService {
                 componente.getLocalizacao(),
                 componente.getCategoria(),
                 componente.getObservacoes(),
-                componente.getNivelMinimoEstoque()
+                componente.getNivelMinimoEstoque() // Campo adicionado
         );
     }
 
     private Componente toEntity(ComponenteDTO dto) {
         Componente componente = new Componente();
+        // Não definimos o ID aqui, pois ele é gerado pelo banco ou vem do update
         componente.setNome(dto.getNome());
         componente.setCodigoPatrimonio(dto.getCodigoPatrimonio());
         componente.setQuantidade(dto.getQuantidade());
         componente.setLocalizacao(dto.getLocalizacao());
         componente.setCategoria(dto.getCategoria());
         componente.setObservacoes(dto.getObservacoes());
-        componente.setNivelMinimoEstoque(dto.getNivelMinimoEstoque());
         return componente;
     }
 }

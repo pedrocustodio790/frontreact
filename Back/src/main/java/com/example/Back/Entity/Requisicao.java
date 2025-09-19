@@ -5,8 +5,8 @@ import jakarta.persistence.
 import lombok.Data;
 import java.time.LocalDateTime;
 
-@Entity
-@Data // Esta anotação já cria TODOS os getters e setters para nós\!
+//@0Entity
+//@Data // Esta anotação já cria TODOS os getters e setters para nós\!
 public class Requisicao {
 
 // --- CAMPOS (Os "dados" que a entidade guarda) ---
