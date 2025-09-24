@@ -71,6 +71,16 @@
 			<version>4.4.0</version>
 		</dependency>
 
+		<!-- Adicione também a dependência do Flyway -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -85,6 +95,18 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+
+			<!-- Plugin do Flyway -->
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>10.10.0</version>
+				<configuration>
+					<url>jdbc:mysql://localhost:3306/stockbot</url>
+					<user>root</user>
+					<password>euv48yv4r9un8tyvn4unv8v@</password>
 				</configuration>
 			</plugin>
 		</plugins>
