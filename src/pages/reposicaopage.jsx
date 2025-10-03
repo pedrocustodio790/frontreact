@@ -103,9 +103,13 @@ function ReposicaoPage() {
 
   return (
     <Box
-      component="main"
-      sx={{ flexGrow: 1, p: 3, backgroundColor: "#f8f9fa" }}
-    >
+  component="main"
+  sx={{ 
+    flexGrow: 1, 
+    p: 3, 
+    backgroundColor: "background.default" // ✅
+  }}
+>
       <Container maxWidth="lg">
         <Box
           display="flex"
@@ -135,7 +139,11 @@ function ReposicaoPage() {
 
         <Grid container spacing={3}>
           {itensEmFalta.length > 0 && (
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <ActionList
                 title="Itens Esgotados"
                 items={itensEmFalta}
@@ -146,7 +154,11 @@ function ReposicaoPage() {
           )}
 
           {itensEstoqueBaixo.length > 0 && (
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6
+              }}>
               <ActionList
                 title={`Itens com Estoque Baixo (≤ ${threshold} unidades)`}
                 items={itensEstoqueBaixo}

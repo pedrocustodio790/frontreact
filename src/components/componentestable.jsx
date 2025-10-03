@@ -66,13 +66,13 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               ))
             ) : (
               // 4. MENSAGEM DE "NENHUM ITEM" ESTILIZADA
-              <TableRow>
+              (<TableRow>
                 <TableCell colSpan={isAdmin ? 4 : 3} align="center">
                   <Typography color="text.secondary" sx={{ p: 3 }}>
                     Nenhum componente encontrado.
                   </Typography>
                 </TableCell>
-              </TableRow>
+              </TableRow>)
             )}
           </TableBody>
         </Table>

@@ -8,25 +8,24 @@ import org.springframework.web.bind.annotation.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
-@RequestMapping("/api/settings")
-public class SettingsController {
+// ✅ NOME DA ROTA CORRIGIDO
+@RequestMapping("/api/configuracoes")
+public class ConfiguracaoController { // ✅ NOME DA CLASSE CORRIGIDO
 
-    // Para simplificar, vamos guardar o limite na memória.
-    // Numa aplicação real, isto viria de uma tabela 'settings' na base de dados.
     private final AtomicInteger lowStockThreshold = new AtomicInteger(5);
 
-    // Endpoint para OBTER o limite atual
-    @GetMapping("/lowStockThreshold")
+    // ✅ NOME DO ENDPOINT CORRIGIDO
+    @GetMapping("/limiteEstoqueBaixo")
     public ResponseEntity<Integer> getLowStockThreshold() {
-        System.out.println("[SETTINGS CONTROLLER] GET /lowStockThreshold - Retornando: " + lowStockThreshold.get());
+        System.out.println("[CONFIG CONTROLLER] GET /limiteEstoqueBaixo - Retornando: " + lowStockThreshold.get());
         return ResponseEntity.ok(lowStockThreshold.get());
     }
 
-    // Endpoint para ATUALIZAR o limite (só para admins)
-    @PutMapping("/lowStockThreshold")
+    // ✅ NOME DO ENDPOINT CORRIGIDO
+    @PutMapping("/limiteEstoqueBaixo")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> updateLowStockThreshold(@RequestBody ThresholdDTO dto) {
-        System.out.println("[SETTINGS CONTROLLER] PUT /lowStockThreshold - Novo valor: " + dto.getThreshold());
+        System.out.println("[CONFIG CONTROLLER] PUT /limiteEstoqueBaixo - Novo valor: " + dto.getThreshold());
         lowStockThreshold.set(dto.getThreshold());
         return ResponseEntity.ok().build();
     }

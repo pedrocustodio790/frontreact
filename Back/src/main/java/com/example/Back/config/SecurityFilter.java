@@ -9,12 +9,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -39,21 +37,14 @@ public class SecurityFilter extends OncePerRequestFilter {
             try {
                 var subject = tokenService.getSubject(tokenJWT);
 
-                // --- CORREÇÃO APLICADA AQUI ---
-                // 1. Recebemos a "caixa" (Optional) do repositório
-                Optional<UserDetails> optionalUsuario = Optional.ofNullable(usuarioRepository.findUserDetailsByEmail(subject));
-
-                // 2. Verificamos se a "caixa" não está vazia
-                if (optionalUsuario.isPresent()) {
-                    // 3. Se não estiver, pegamos o conteúdo de dentro
-                    UserDetails usuario = optionalUsuario.get();
-
+                // --- LÓGICA CORRIGIDA E SIMPLIFICADA ---
+                // Usamos o método correto que retorna Optional e o método .ifPresent()
+                usuarioRepository.findByEmail(subject).ifPresent(usuario -> {
                     var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+                });
 
             } catch (Exception e) {
-                // Lida com tokens inválidos ou expirados
                 SecurityContextHolder.clearContext();
             }
         }

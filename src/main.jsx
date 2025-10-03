@@ -10,8 +10,9 @@ import DashboardPage from "./pages/dashboardpage.jsx";
 import ComponentesPage from './pages/componentepages.jsx'
 import HistoricoPage from "./pages/historicopage.jsx";
 import ConfiguracoesPage from './pages/configuracaopages.jsx';
-import ReposicaoPage from './pages/reposicaopage.jsx'; 
-import { ThemeProvider } from './context/ThemeContext.jsx'; 
+import ReposicaoPage from './pages/reposicaopage.jsx';
+import AjudaPage from './pages/ajudapage.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import './index.css'
 
 const router = createBrowserRouter([
@@ -20,10 +21,11 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: "/componentes", element: <ComponentesPage /> },
+      { path: "/componentes", element: <ComponentesPage /> }, // ✅ 2. Rota duplicada removida
       { path: "/historico", element: <HistoricoPage /> },
       { path: "/reposicao", element: <ReposicaoPage /> },
       { path: "/configuracoes", element: <ConfiguracoesPage /> },
+      { path: "/ajuda", element: <AjudaPage /> },
     ],
   },
   {
@@ -36,13 +38,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
       <RouterProvider router={router} />
-      <ToastContainer 
+      <ToastContainer
         position="bottom-right"
-        autoClose={3000} 
+        autoClose={3000}
         hideProgressBar={false}
         theme="colored"
       />
     </ThemeProvider>
   </React.StrictMode>
 );
-

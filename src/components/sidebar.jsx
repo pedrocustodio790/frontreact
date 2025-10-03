@@ -1,9 +1,20 @@
 // src/components/sidebar.jsx
-
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { NavLink, useNavigate } from 'react-router-dom';
-// 1. IMPORTAMOS O NOVO ÍCONE
+import {
+  Box,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  Divider,
+} from '@mui/material';
 import { LayoutDashboard, Wrench, History, ArchiveRestore, Settings, LogOut } from 'lucide-react';
-import './sidebar.css';
+
+const drawerWidth = 250;
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -14,36 +25,77 @@ function Sidebar() {
   };
 
   return (
-    <nav className="sidebar">
-      <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>StockBot</h2>
-      
-      <NavLink to="/" className="nav-link"> 
-        <LayoutDashboard size={20} /> <span>Dashboard</span> 
-      </NavLink>
+    <Drawer
+      variant="permanent"
+      // ✅ 1. ESTILOS DO DRAWER ADICIONADOS AQUI
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: drawerWidth,
+          boxSizing: 'border-box',
+          // Cores vindas diretamente do nosso tema!
+          backgroundColor: 'background.paper',
+          borderRight: 'none',
+        },
+      }}
+    >
+      <Toolbar>
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>StockBot</Typography>
+      </Toolbar>
+      <Divider />
 
-      <NavLink to="/componentes" className="nav-link">
-        <Wrench size={20} /> <span>Componentes</span>
-      </NavLink>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <List>
+          {/* ✅ 2. ESTILO DE LINK ATIVO ADICIONADO AQUI */}
+          <ListItemButton
+            component={NavLink}
+            to="/"
+            sx={{ '&.active': { backgroundColor: 'action.selected' } }}
+          >
+            <ListItemIcon><LayoutDashboard size={20} /></ListItemIcon>
+            <ListItemText primary="Dashboard" />
+          </ListItemButton>
+          
+          <ListItemButton
+            component={NavLink}
+            to="/componentes"
+            sx={{ '&.active': { backgroundColor: 'action.selected' } }}
+          >
+            <ListItemIcon><Wrench size={20} /></ListItemIcon>
+            <ListItemText primary="Componentes" />
+          </ListItemButton>
 
-      <NavLink to="/historico" className="nav-link">
-        <History size={20} /> <span>Histórico</span>
-      </NavLink>
-      
-      {/* 2. ADICIONAMOS O NOVO LINK AQUI */}
-      <NavLink to="/reposicao" className="nav-link">
-        <ArchiveRestore size={20} /> <span>Reposição</span>
-      </NavLink>
-      
-      <div style={{ flexGrow: 1 }}></div>
-      
-      <NavLink to="/configuracoes" className="nav-link">
-        <Settings size={20} /> <span>Configurações</span>
-      </NavLink>
-      
-      <button onClick={handleLogout} className="nav-link logout-button">
-        <LogOut size={20} /> <span>Sair</span>
-      </button>
-    </nav>
+          {/* Adicione o sx={{ '&.active': ... }} para os outros links também */}
+          <ListItemButton component={NavLink} to="/historico" sx={{ '&.active': { backgroundColor: 'action.selected' } }}>
+            <ListItemIcon><History size={20} /></ListItemIcon>
+            <ListItemText primary="Histórico" />
+          </ListItemButton>
+          <ListItemButton component={NavLink} to="/reposicao" sx={{ '&.active': { backgroundColor: 'action.selected' } }}>
+            <ListItemIcon><ArchiveRestore size={20} /></ListItemIcon>
+            <ListItemText primary="Reposição" />
+          </ListItemButton>
+        </List>
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        <List>
+          <Divider />
+          <ListItemButton component={NavLink} to="/configuracoes" sx={{ '&.active': { backgroundColor: 'action.selected' } }}>
+            <ListItemIcon><Settings size={20} /></ListItemIcon>
+            <ListItemText primary="Configurações" />
+          </ListItemButton>
+          <ListItemButton component={NavLink} to="/ajuda" sx={{ '&.active': { backgroundColor: 'action.selected' } }}>
+            <ListItemIcon><HelpOutlineIcon /></ListItemIcon>
+            <ListItemText primary="Ajuda" />
+          </ListItemButton>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon><LogOut size={20} /></ListItemIcon>
+            <ListItemText primary="Sair" />
+          </ListItemButton>
+        </List>
+      </Box>
+    </Drawer>
   );
 }
 

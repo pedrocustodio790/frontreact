@@ -26,7 +26,6 @@ public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
 
-    // MELHORIA: Injeção de dependências via construtor
     public SecurityConfig(SecurityFilter securityFilter) {
         this.securityFilter = securityFilter;
     }
@@ -34,12 +33,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <-- MELHORIA: CORS integrado
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // Rotas públicas de autenticação
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+
+                        // ✅ REGRA ADICIONADA PARA RESOLVER O ERRO 403 ✅
+                        .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated()
+
+                        // Regras de Admin
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/configuracoes/**").hasRole("ADMIN") // O resto de /configuracoes é para admin
+
+                        // Qualquer outra rota precisa de autenticação
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

@@ -21,10 +21,9 @@ function ActionList({ title, items }) {
       <Typography variant="h6" component="h3" gutterBottom>
         {title}
       </Typography>
-
       {items.length > 0 ? (
         // List: O componente do MUI para criar listas
-        <List>
+        (<List>
           {items.map((item) => (
             <React.Fragment key={item.id}>
               {/* ListItem: Cada item da nossa lista */}
@@ -43,10 +42,10 @@ function ActionList({ title, items }) {
               <Divider variant="inset" component="li" />
             </React.Fragment>
           ))}
-        </List>
+        </List>)
       ) : (
         // Mensagem de placeholder se a lista estiver vazia
-        <Box
+        (<Box
           sx={{
             display: "flex",
             alignItems: "center",
@@ -57,7 +56,7 @@ function ActionList({ title, items }) {
           <Typography variant="body2" color="text.secondary">
             Nenhum item nesta categoria.
           </Typography>
-        </Box>
+        </Box>)
       )}
     </Paper>
   );

@@ -61,10 +61,14 @@ function HistoricoPage() {
   };
 
   return (
-    <Box
-      component="main"
-      sx={{ flexGrow: 1, p: 3, backgroundColor: "#f8f9fa" }}
-    >
+   <Box
+  component="main"
+  sx={{ 
+    flexGrow: 1, 
+    p: 3, 
+    backgroundColor: "background.default" // ✅
+  }}
+>
       <Container maxWidth="lg">
         <Typography
           variant="h4"
