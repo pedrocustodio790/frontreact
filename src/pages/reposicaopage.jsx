@@ -29,9 +29,9 @@ function ReposicaoPage() {
 
         // Buscar dados em paralelo para melhor performance
         const [componentesResponse, thresholdResponse] = await Promise.all([
-          api.get("/api/componentes"),
+          api.get("/componentes"),
           api
-            .get("/api/configuracoes/limiteEstoqueBaixo")
+            .get("/configuracoes/limiteEstoqueBaixo")
             .catch(() => ({ data: 5 })), // Fallback para 5 se der erro
         ]);
 
@@ -103,13 +103,13 @@ function ReposicaoPage() {
 
   return (
     <Box
-  component="main"
-  sx={{ 
-    flexGrow: 1, 
-    p: 3, 
-    backgroundColor: "background.default" // ✅
-  }}
->
+      component="main"
+      sx={{
+        flexGrow: 1,
+        p: 3,
+        backgroundColor: "background.default", // ✅
+      }}
+    >
       <Container maxWidth="lg">
         <Box
           display="flex"
@@ -142,8 +142,9 @@ function ReposicaoPage() {
             <Grid
               size={{
                 xs: 12,
-                md: 6
-              }}>
+                md: 6,
+              }}
+            >
               <ActionList
                 title="Itens Esgotados"
                 items={itensEmFalta}
@@ -157,8 +158,9 @@ function ReposicaoPage() {
             <Grid
               size={{
                 xs: 12,
-                md: 6
-              }}>
+                md: 6,
+              }}
+            >
               <ActionList
                 title={`Itens com Estoque Baixo (≤ ${threshold} unidades)`}
                 items={itensEstoqueBaixo}

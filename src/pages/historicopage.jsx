@@ -34,7 +34,7 @@ function HistoricoPage() {
       try {
         // A chamada à API agora inclui os parâmetros de paginação
         const response = await api.get(
-          `/api/historico?page=${page}&size=${rowsPerPage}`
+          `/historico?page=${page}&size=${rowsPerPage}`
         );
 
         // O backend paginado retorna um objeto com os dados e informações da página
@@ -61,14 +61,14 @@ function HistoricoPage() {
   };
 
   return (
-   <Box
-  component="main"
-  sx={{ 
-    flexGrow: 1, 
-    p: 3, 
-    backgroundColor: "background.default" // ✅
-  }}
->
+    <Box
+      component="main"
+      sx={{
+        flexGrow: 1,
+        p: 3,
+        backgroundColor: "background.default", // ✅
+      }}
+    >
       <Container maxWidth="lg">
         <Typography
           variant="h4"

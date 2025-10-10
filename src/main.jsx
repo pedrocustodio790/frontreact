@@ -1,19 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import App from "./App.jsx";
 import LoginPage from "./pages/loginpage.jsx";
 import DashboardPage from "./pages/dashboardpage.jsx";
-import ComponentesPage from './pages/componentepages.jsx'
+import ComponentesPage from "./pages/componentepages.jsx";
 import HistoricoPage from "./pages/historicopage.jsx";
-import ConfiguracoesPage from './pages/configuracaopages.jsx';
-import ReposicaoPage from './pages/reposicaopage.jsx';
-import AjudaPage from './pages/ajudapage.jsx';
-import { ThemeProvider } from './context/ThemeContext.jsx';
-import './index.css'
+import ConfiguracoesPage from "./pages/configuracaopages.jsx";
+import ReposicaoPage from "./pages/reposicaopage.jsx";
+import AjudaPage from "./pages/ajudapage.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import "./index.css";
 
 const router = createBrowserRouter([
   {
@@ -32,9 +32,13 @@ const router = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
   },
+  {
+    path: "/register", // ✅ 2. Adicione a nova rota
+    element: <RegisterPage />,
+  },
 ]);
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
       <RouterProvider router={router} />

@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // Você deve usar a sua instância configurada do Axios
-import { toast } from 'react-toastify';
+import { useState } from "react";
+import { useNavigate, Link as RouterLink } from "react-router-dom"; // ✅ RouterLink importado
+import api from "../services/api";
+import { toast } from "react-toastify";
+import { useForm, Controller } from "react-hook-form"; // ✅ Imports para o formulário
+import { yupResolver } from "@hookform/resolvers/yup"; // ✅ Imports para o formulário
+import * as yup from "yup"; // ✅ Imports para o formulário
 
 // Imports do Material-UI
 import {
@@ -11,54 +14,69 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography
-} from '@mui/material';
+  Typography,
+  Grid, // ✅ Grid importado
+  Link, // ✅ Link do MUI importado
+} from "@mui/material";
 
-const apiUrl = 'http://localhost:8080/api/auth';
+// ✅ Schema de validação, igual fizemos no RegisterPage
+const schema = yup.object().shape({
+  email: yup.string().email("Email inválido").required("O email é obrigatório"),
+  senha: yup.string().required("A senha é obrigatória"),
+});
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false); // Estado de loading para o botão
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  // ✅ Configuração do react-hook-form
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { email: "", senha: "" },
+  });
+
+  // ✅ A função agora se chama onSubmit e recebe os dados do formulário
+  const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await api.post(`/auth/login`, { email, senha });
+      const response = await api.post(`/auth/login`, {
+        email: data.email,
+        senha: data.senha,
+      });
       const token = response.data.token;
-      localStorage.setItem('jwt-token', token);
-      navigate('/'); // Navega para o dashboard após o login
+      localStorage.setItem("jwt-token", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`; // Atualiza o header para futuras requisições
+      navigate("/");
     } catch (error) {
-      console.error('Erro de login:', error);
-      // Usando toast para um feedback mais elegante
-      toast.error('E-mail ou senha inválidos.');
+      console.error("Erro de login:", error);
+      toast.error("E-mail ou senha inválidos.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    // Container principal para centralizar o conteúdo na tela
     <Container
       component="main"
-      maxWidth="xs" // Limita a largura máxima do formulário
+      maxWidth="xs"
       sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
       }}
     >
-      {/* Paper cria o "card" de login com sombra e cor de fundo do tema */}
       <Paper
         elevation={6}
         sx={{
-          p: 4, // padding
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          p: 4,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           borderRadius: 2,
         }}
       >
@@ -66,45 +84,67 @@ function LoginPage() {
           Acessar o StockBot
         </Typography>
 
-        {/* O <form> vira um <Box component="form"> */}
-        <Box component="form" onSubmit={handleLogin} sx={{ mt: 1, width: '100%' }}>
-            {/* Stack é ótimo para organizar formulários com espaçamento */}
-            <Stack spacing={2}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{ mt: 1, width: "100%" }}
+        >
+          <Stack spacing={2}>
+            {/* ✅ TextField agora usa o Controller */}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
                 <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Endereço de E-mail"
-                    name="email"
-                    autoComplete="email"
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                  {...field}
+                  margin="normal"
+                  required
+                  fullWidth
+                  label="Endereço de E-mail"
+                  autoComplete="email"
+                  autoFocus
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
                 />
+              )}
+            />
+            {/* ✅ TextField agora usa o Controller */}
+            <Controller
+              name="senha"
+              control={control}
+              render={({ field }) => (
                 <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Senha"
-                    type="password"
-                    id="password"
-                    autoComplete="current-password"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
+                  {...field}
+                  margin="normal"
+                  required
+                  fullWidth
+                  label="Senha"
+                  type="password"
+                  autoComplete="current-password"
+                  error={!!errors.senha}
+                  helperText={errors.senha?.message}
                 />
-                <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary" // Pega a cor do nosso tema!
-                    disabled={loading} // Desabilita o botão durante o login
-                    sx={{ mt: 3, mb: 2, py: 1.5 }}
-                >
-                    {loading ? 'Entrando...' : 'Entrar'}
-                </Button>
-            </Stack>
+              )}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={loading}
+              sx={{ mt: 3, mb: 2, py: 1.5 }}
+            >
+              {loading ? "Entrando..." : "Entrar"}
+            </Button>
+            {/* ✅ Grid com o Link movido para o lugar correto, dentro do Stack */}
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link component={RouterLink} to="/register" variant="body2">
+                  Não tem uma conta? Cadastre-se
+                </Link>
+              </Grid>
+            </Grid>
+          </Stack>
         </Box>
       </Paper>
     </Container>

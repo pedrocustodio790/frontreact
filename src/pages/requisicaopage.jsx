@@ -1,19 +1,32 @@
-import { useState, useEffect } from 'react';
-import Sidebar from '../components/sidebar';
-import api from '../services/api';
-import { toast } from 'react-toastify';
-import './requisicaopage.css' // Crie um ficheiro CSS para estilizar se necessário
+import { useState, useEffect } from "react";
+import api from "../services/api";
+import { toast } from "react-toastify";
+
+// ✅ Imports de Componentes do MUI
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 
 function RequisicoesPage() {
-  // Estado para guardar as requisições e o loading
   const [requisicoes, setRequisicoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Busca os dados do backend quando a página carrega
   const fetchRequisicoes = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/requisicoes/pendentes');
+      // ✅ API PATH CORRIGIDO
+      const response = await api.get("/requisicoes/pendentes");
       setRequisicoes(response.data);
     } catch (error) {
       toast.error("Falha ao carregar as requisições pendentes.");
@@ -27,65 +40,88 @@ function RequisicoesPage() {
     fetchRequisicoes();
   }, []);
 
-  // Função para marcar uma requisição como concluída
   const handleMarcarConcluido = async (id) => {
     try {
-      await api.put(`/api/requisicoes/${id}/concluir`);
+      // ✅ API PATH CORRIGIDO
+      await api.put(`/requisicoes/${id}/concluir`);
       toast.success("Requisição marcada como concluída!");
-      // Atualiza a lista, removendo o item concluído
-      fetchRequisicoes();
+      fetchRequisicoes(); // Recarrega a lista para remover o item concluído
     } catch (error) {
       toast.error("Falha ao atualizar a requisição.");
       console.error(error);
     }
   };
 
+  // ✅ A Sidebar não é mais necessária aqui, pois ela já está no App.jsx envolvendo o <Outlet>
   return (
-    <div className="requisicoes-page">
-      <Sidebar />
-      <main className="main-content">
-        <h1>Requisições Pendentes</h1>
+    <Box
+      component="main"
+      sx={{ flexGrow: 1, p: 3, backgroundColor: "background.default" }}
+    >
+      <Container maxWidth="lg">
+        <Typography
+          variant="h4"
+          component="h1"
+          fontWeight="bold"
+          sx={{ mb: 4 }}
+        >
+          Requisições Pendentes
+        </Typography>
+
         {loading ? (
-          <p>A carregar requisições...</p>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+            <CircularProgress />
+          </Box>
         ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Identificador</th>
-                  <th>Data da Requisição</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requisicoes.length > 0 ? (
-                  requisicoes.map(req => (
-                    <tr key={req.id}>
-                      <td>{req.componente.nome}</td>
-                      <td>{req.componente.codigoPatrimonio}</td>
-                      <td>{new Date(req.dataRequisicao).toLocaleString()}</td>
-                      <td>
-                        <button 
-                          className="action-button"
-                          onClick={() => handleMarcarConcluido(req.id)}
-                        >
-                          Marcar como Concluído
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4">Nenhuma requisição pendente.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
+            <TableContainer>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Patrimônio/Identificador
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Data da Requisição
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {requisicoes.length > 0 ? (
+                    requisicoes.map((req) => (
+                      <TableRow hover key={req.id}>
+                        <TableCell>{req.componenteNome}</TableCell>
+                        <TableCell>{req.componenteCodigoPatrimonio}</TableCell>
+                        <TableCell>
+                          {new Date(req.dataRequisicao).toLocaleString("pt-BR")}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleMarcarConcluido(req.id)}
+                          >
+                            Marcar como Concluído
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        Nenhuma requisição pendente.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
         )}
-      </main>
-    </div>
+      </Container>
+    </Box>
   );
 }
 
