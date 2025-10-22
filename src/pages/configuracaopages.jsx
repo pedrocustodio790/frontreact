@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
-import { ThemeContext } from "../context/ThemeContext.jsx";
+import { ThemeContext } from "../context/themecontext.jsx";
 import api from "../services/api";
 import { jwtDecode } from "jwt-decode";
 

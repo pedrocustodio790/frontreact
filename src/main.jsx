@@ -12,8 +12,9 @@ import HistoricoPage from "./pages/historicopage.jsx";
 import ConfiguracoesPage from "./pages/configuracaopages.jsx";
 import ReposicaoPage from "./pages/reposicaopage.jsx";
 import AjudaPage from "./pages/ajudapage.jsx";
-import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { ThemeProvider } from "./context/themecontext.jsx";
 import "./index.css";
+import UserManagementPage from "./pages/UserManagementpage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "/reposicao", element: <ReposicaoPage /> },
       { path: "/configuracoes", element: <ConfiguracoesPage /> },
       { path: "/ajuda", element: <AjudaPage /> },
+      { path: "/gerenciar-usuarios", element: <UserManagementPage /> },
     ],
   },
   {

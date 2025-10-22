@@ -31,6 +31,7 @@ public class SecurityConfig {
     }
 
     // ✅ Bean do SecurityFilterChain (Configuração das regras de acesso)
+    // ✅ Bean do SecurityFilterChain (Configuração das regras de acesso)
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -41,13 +42,18 @@ public class SecurityConfig {
                         // Rotas públicas de autenticação
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**/reset-password").hasRole("ADMIN")
+                        // Rota para o perfil do usuário logado
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 
                         // Regra para servir as fotos de perfil publicamente
                         .requestMatchers("/user-photos/**").permitAll()
 
-                        // Regras de Admin
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasRole("ADMIN")
+                        // Regras de Admin (APENAS /api/users)
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/configuracoes/**").hasRole("ADMIN")
 
                         // Regras para usuários autenticados (USER ou ADMIN)

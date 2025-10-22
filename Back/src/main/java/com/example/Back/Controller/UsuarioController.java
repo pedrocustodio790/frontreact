@@ -1,10 +1,8 @@
 package com.example.Back.Controller;
 
-import com.example.Back.Dto.CreateUserDTO;
-import com.example.Back.Dto.PasswordChangeDTO;
-import com.example.Back.Dto.UpdateRoleDTO; // Importe o DTO que você criou
-import com.example.Back.Dto.UsuarioDTO;
+import com.example.Back.Dto.*;
 import com.example.Back.Entity.UserRole;
+import com.example.Back.Entity.Usuario;
 import com.example.Back.Service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,6 +27,14 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UsuarioDTO>> getAllUsers() {
         return ResponseEntity.ok(usuarioService.findAll());
+    }
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()") // Garante que só usuários logados acessem
+    public ResponseEntity<Usuario> getMyProfile(Authentication authentication) {
+        // 'authentication.getName()' pega o email do usuário logado (do token JWT)
+        String userEmail = authentication.getName();
+        Usuario usuario = usuarioService.findByEmail(userEmail);
+        return ResponseEntity.ok(usuario);
     }
 
     @PostMapping
@@ -66,5 +72,15 @@ public class UsuarioController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    @PutMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')") // Garante que SÓ ADMINS podem chamar
+    public ResponseEntity<Void> resetUserPassword(
+            @PathVariable Long id,
+            @RequestBody @Valid PasswordResetDTO passwordResetDTO
+    ) {
+        usuarioService.resetPassword(id, passwordResetDTO);
+        // Retorna 200 OK (ou 204 No Content) se for bem-sucedido
+        return ResponseEntity.ok().build();
     }
 }

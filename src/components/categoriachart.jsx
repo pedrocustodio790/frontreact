@@ -1,57 +1,41 @@
-import React from 'react';
-
-// Imports do MUI
-import {
-  Box,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  Typography,
-  Divider
-} from '@mui/material';
-
-// Ícone para ilustrar
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+// src/components/ActionList.jsx (VERSÃO REFORMADA E MELHORADA)
+import React from "react";
+import { Box, List, Paper, Typography } from "@mui/material";
 
 /**
  * @param {object} props
  * @param {string} props.title - Título da lista
- * @param {Array<object>} props.items - Array de itens para listar (espera-se { nome, quantidade })
+ * @param {React.ReactNode} props.children - Os ListItems que serão renderizados
  * @param {string} props.emptyMessage - Mensagem para quando a lista estiver vazia
  */
-function ActionList({ title, items = [], emptyMessage = "Nenhum item para exibir." }) {
+function ActionList({
+  title,
+  children,
+  emptyMessage = "Nenhum item para exibir.",
+}) {
+  // 1. Verificamos se algum "filho" (children) foi passado
+  const hasItems = React.Children.count(children) > 0;
+
   return (
-    // Paper serve como o contêiner principal, com cor e sombra do tema
-    <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+    // 2. A SUA ESTRUTURA DE LAYOUT (que é excelente!)
+    <Paper
+      sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}
+    >
       <Typography variant="h6" component="h3" gutterBottom>
         {title}
       </Typography>
 
-      {/* Box para conter a lista e permitir scroll se ela for muito grande */}
-      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-        {items.length > 0 ? (
-          <List dense> {/* dense = deixa a lista um pouco mais compacta */}
-            {items.map((item, index) => (
-              <React.Fragment key={item.id || index}>
-                <ListItem>
-                  <ListItemIcon sx={{ minWidth: '40px' }}>
-                    {/* Um ícone para dar um toque visual */}
-                    <WarningAmberIcon color="warning" /> 
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.nome}
-                    secondary={`Quantidade: ${item.quantidade}`} // Texto secundário, menor e mais claro
-                  />
-                </ListItem>
-                {/* Adiciona um divisor entre os itens, exceto no último */}
-                {index < items.length - 1 && <Divider component="li" />}
-              </React.Fragment>
-            ))}
-          </List>
+      {/* 3. O SEU BOX COM SCROLL (perfeito!) */}
+      <Box sx={{ flexGrow: 1, overflow: "auto" }}>
+        {hasItems ? (
+          // 4. Renderizamos os 'children' dentro da lista
+          <List dense>{children}</List>
         ) : (
-          <Typography variant="body2" sx={{ textAlign: 'center', mt: 4, color: 'text.secondary' }}>
+          // 5. O SEU placeholder (ótimo!)
+          <Typography
+            variant="body2"
+            sx={{ textAlign: "center", mt: 4, color: "text.secondary" }}
+          >
             {emptyMessage}
           </Typography>
         )}

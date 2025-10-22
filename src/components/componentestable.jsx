@@ -1,8 +1,6 @@
-import React from 'react';
-
-// 1. IMPORTAÇÕES DE COMPONENTES E ÍCONES DO MUI
+// Em src/components/ComponentesTable.jsx (ATUALIZADO)
+import React from "react";
 import {
-  Box,
   Paper,
   Table,
   TableBody,
@@ -10,27 +8,35 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton, // Botão de ícone
-  Stack,      // Para organizar os botões
-  Typography
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
+// 1. A prop 'componentes' agora espera 'localizacao' e 'categoria'
 function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
   return (
-    // 2. A "CARCAÇA" AGORA É UM COMPONENTE <Paper> DO MUI
-    <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 3 }}>
+    <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
       <TableContainer>
-        {/* Usamos 'stickyHeader' para manter o cabeçalho visível ao rolar a página */}
         <Table stickyHeader aria-label="tabela de componentes">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Patrimônio</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Quantidade</TableCell>
-              {/* A sua lógica de 'isAdmin' continua a funcionar perfeitamente */}
-              {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>Ações</TableCell>}
+              <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Quantidade</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Localização
+              </TableCell>{" "}
+              {/* ✅ Coluna Nova */}
+              <TableCell sx={{ fontWeight: "bold" }}>Categoria</TableCell>{" "}
+              {/* ✅ Coluna Nova */}
+              {isAdmin && (
+                <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
+                  Ações
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -40,21 +46,27 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                   <TableCell>{componente.nome}</TableCell>
                   <TableCell>{componente.codigoPatrimonio}</TableCell>
                   <TableCell>{componente.quantidade}</TableCell>
+                  <TableCell>{componente.localizacao}</TableCell>{" "}
+                  {/* ✅ Coluna Nova */}
+                  <TableCell>{componente.categoria}</TableCell>{" "}
+                  {/* ✅ Coluna Nova */}
                   {isAdmin && (
-                    <TableCell>
-                      {/* 3. USAMOS BOTÕES DE ÍCONE PARA UMA APARÊNCIA MAIS LIMPA */}
-                      {/* Stack organiza os ícones numa linha com espaçamento */}
-                      <Stack direction="row" spacing={1}>
+                    <TableCell align="right">
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="flex-end"
+                      >
                         <IconButton
-                          aria-label="editar"
                           color="info"
+                          size="small"
                           onClick={() => onEdit(componente)}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          aria-label="excluir"
                           color="error"
+                          size="small"
                           onClick={() => onDelete(componente.id)}
                         >
                           <DeleteIcon />
@@ -65,14 +77,14 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                 </TableRow>
               ))
             ) : (
-              // 4. MENSAGEM DE "NENHUM ITEM" ESTILIZADA
-              (<TableRow>
-                <TableCell colSpan={isAdmin ? 4 : 3} align="center">
+              <TableRow>
+                {/* 2. O colSpan agora é 6 (ou 5 se não for admin) */}
+                <TableCell colSpan={isAdmin ? 6 : 5} align="center">
                   <Typography color="text.secondary" sx={{ p: 3 }}>
                     Nenhum componente encontrado.
                   </Typography>
                 </TableCell>
-              </TableRow>)
+              </TableRow>
             )}
           </TableBody>
         </Table>

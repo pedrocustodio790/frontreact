@@ -1,3 +1,4 @@
+// Em src/pages/ComponentesPage.jsx (REFORMADO)
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { CSVLink } from "react-csv";
@@ -8,28 +9,19 @@ import {
   Button,
   CircularProgress,
   Container,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
-  IconButton,
-  Stack,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 import ModalComponente from "../components/modalcomponente";
 import api from "../services/api";
 import { isAdmin } from "../services/authService";
-
+// ✅ 1. IMPORTE O COMPONENTE QUE ACABAMOS DE ATUALIZAR
+import ComponentesTable from "../components/componentestable";
 function ComponentesPage() {
+  // --- TODA A SUA LÓGICA "INTELIGENTE" (PERFEITA) ---
   const [componentes, setComponentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -37,8 +29,8 @@ function ComponentesPage() {
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const fileInputRef = useRef(null);
 
-  // ✅ --- FUNÇÕES DE CONTROLE (CRUD) IMPLEMENTADAS --- ✅
   const fetchData = async () => {
+    // ... (sua função fetchData - perfeita)
     setLoading(true);
     try {
       const response = await api.get("/componentes");
@@ -52,16 +44,18 @@ function ComponentesPage() {
   };
 
   const handleEdit = (componente) => {
+    // ... (sua função handleEdit - perfeita)
     setComponenteEmEdicao(componente);
     setModalVisible(true);
   };
 
   const handleDelete = async (id) => {
+    // ... (sua função handleDelete - perfeita)
     if (window.confirm("Você tem certeza que deseja excluir este item?")) {
       try {
         await api.delete(`/componentes/${id}`);
         toast.success("Item excluído com sucesso!");
-        fetchData(); // Atualiza a lista após a exclusão
+        fetchData();
       } catch (error) {
         toast.error("Falha ao excluir o item.");
         console.error(error);
@@ -70,16 +64,18 @@ function ComponentesPage() {
   };
 
   const handleAdd = () => {
-    setComponenteEmEdicao(null); // Garante que o modal estará no modo de "adicionar"
+    // ... (sua função handleAdd - perfeita)
+    setComponenteEmEdicao(null);
     setModalVisible(true);
   };
 
-  // --- FUNÇÕES PARA IMPORTAÇÃO DE CSV ---
   const handleImportClick = () => {
+    // ... (sua função handleImportClick - perfeita)
     fileInputRef.current.click();
   };
 
   const handleFileUpload = (event) => {
+    // ... (sua função handleFileUpload - perfeita)
     const file = event.target.files[0];
     if (!file) return;
 
@@ -91,6 +87,7 @@ function ComponentesPage() {
       skipEmptyLines: true,
       complete: async (results) => {
         try {
+          // ✅ API CORRIGIDA PARA BATCH
           await api.post("/componentes/batch", results.data);
           toast.success(
             `${results.data.length} componentes importados com sucesso!`
@@ -119,8 +116,8 @@ function ComponentesPage() {
     fetchData();
   }, []);
 
-  // --- LÓGICA PARA EXPORTAÇÃO DE CSV ---
   const headers = [
+    // ... (sua lógica de headers - perfeita)
     { label: "ID", key: "id" },
     { label: "Nome", key: "nome" },
     { label: "Patrimônio", key: "codigoPatrimonio" },
@@ -130,11 +127,13 @@ function ComponentesPage() {
   ];
 
   const csvReport = {
+    // ... (sua lógica do csvReport - perfeita)
     data: componentes,
     headers: headers,
     filename: "Relatorio_Componentes.csv",
   };
 
+  // --- JSX "LIMPO" ---
   return (
     <Box
       component="main"
@@ -154,6 +153,7 @@ function ComponentesPage() {
       />
 
       <Container maxWidth="xl">
+        {/* O Header (perfeito) */}
         <Box
           sx={{
             display: "flex",
@@ -166,6 +166,7 @@ function ComponentesPage() {
             Gerenciamento de Itens
           </Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
+            {/* ... (seus botões de Import, Add, Export - perfeitos) ... */}
             {isUserAdmin && (
               <Button
                 variant="contained"
@@ -198,71 +199,18 @@ function ComponentesPage() {
             <CircularProgress />
           </Box>
         ) : (
-          <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
-            {/* ✅ --- TABELA DE COMPONENTES IMPLEMENTADA --- ✅ */}
-            <TableContainer>
-              <Table stickyHeader aria-label="tabela de componentes">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Patrimônio
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Quantidade
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Localização
-                    </TableCell>
-                    {isUserAdmin && (
-                      <TableCell
-                        sx={{ fontWeight: "bold", textAlign: "right" }}
-                      >
-                        Ações
-                      </TableCell>
-                    )}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {componentes.map((componente) => (
-                    <TableRow hover key={componente.id}>
-                      <TableCell>{componente.nome}</TableCell>
-                      <TableCell>{componente.codigoPatrimonio}</TableCell>
-                      <TableCell>{componente.quantidade}</TableCell>
-                      <TableCell>{componente.localizacao}</TableCell>
-                      {isUserAdmin && (
-                        <TableCell align="right">
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            justifyContent="flex-end"
-                          >
-                            <IconButton
-                              color="info"
-                              size="small"
-                              onClick={() => handleEdit(componente)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color="error"
-                              size="small"
-                              onClick={() => handleDelete(componente.id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Stack>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+          // ✅ 2. A "REFORMA" ACONTECEU AQUI!
+          // Trocamos 70 linhas de tabela por UMA linha de componente.
+          <ComponentesTable
+            componentes={componentes}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isAdmin={isUserAdmin}
+          />
         )}
       </Container>
 
+      {/* O Modal (perfeito) */}
       <ModalComponente
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}

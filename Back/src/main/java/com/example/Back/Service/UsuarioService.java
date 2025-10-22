@@ -2,10 +2,12 @@ package com.example.Back.Service;
 
 import com.example.Back.Dto.CreateUserDTO;
 import com.example.Back.Dto.PasswordChangeDTO;
+import com.example.Back.Dto.PasswordResetDTO;
 import com.example.Back.Dto.UsuarioDTO;
 import com.example.Back.Entity.UserRole; // Importação correta
 import com.example.Back.Entity.Usuario;
 import com.example.Back.Repository.UsuarioRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,9 +78,30 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.getNewPassword()));
         usuarioRepository.save(usuario);
     }
+    @Transactional
+    public void resetPassword(Long userId, PasswordResetDTO dto) {
+        // Busca o usuário pelo ID
+        Usuario user = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com ID: " + userId));
+
+        // Codifica a nova senha
+        String encodedPassword = passwordEncoder.encode(dto.getNewPassword());
+
+        // Atualiza a senha no objeto do usuário
+        user.setSenha(encodedPassword);
+
+        // Salva o usuário atualizado no banco
+        usuarioRepository.save(user);
+    }
 
     private UsuarioDTO toDTO(Usuario usuario) {
-        return new UsuarioDTO(usuario.getId(), usuario.getEmail(), usuario.getRole());
+        return new UsuarioDTO(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getRole(),
+                usuario.getNome(), // ✅ ADICIONE ESTA LINHA
+                usuario.getCaminhoFotoPerfil() // ✅ ADICIONE ESTA LINHA
+        );
     }
     public List<Usuario> findAllUsers() {
         return usuarioRepository.findAll();
@@ -89,6 +112,12 @@ public class UsuarioService {
 
         usuario.setRole(newRole);
         return usuarioRepository.save(usuario);
+
+    }
+    public Usuario findByEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com email: " + email));
     }
 }
+
 
