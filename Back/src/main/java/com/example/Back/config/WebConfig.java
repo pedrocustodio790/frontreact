@@ -4,6 +4,7 @@ package com.example.Back.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
@@ -20,4 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
-}
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+            // Isso permite que o navegador acesse http://localhost:8080/user-photos/nome-da-imagem.jpg
+            registry.addResourceHandler("/user-photos/**")
+                    .addResourceLocations("file:user-photos/");
+        }
+    }

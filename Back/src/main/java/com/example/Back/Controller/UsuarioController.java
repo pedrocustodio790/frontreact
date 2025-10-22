@@ -2,8 +2,9 @@ package com.example.Back.Controller;
 
 import com.example.Back.Dto.CreateUserDTO;
 import com.example.Back.Dto.PasswordChangeDTO;
+import com.example.Back.Dto.UpdateRoleDTO; // Importe o DTO que você criou
 import com.example.Back.Dto.UsuarioDTO;
-import com.example.Back.Entity.UserRole; // A importação correta
+import com.example.Back.Entity.UserRole;
 import com.example.Back.Service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/users") // O RequestMapping correto que você já tinha
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -37,11 +38,12 @@ public class UsuarioController {
         return new ResponseEntity<>(novoUsuario, HttpStatus.CREATED);
     }
 
-    // --- MÉTODO CORRIGIDO ---
+    // --- MÉTODO CORRIGIDO (usando UpdateRoleDTO) ---
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UsuarioDTO> changeUserRole(@PathVariable Long id, @RequestBody UserRole newRole) { // <-- TIPO CORRIGIDO AQUI
-        return ResponseEntity.ok(usuarioService.changeUserRole(id, newRole));
+    public ResponseEntity<UsuarioDTO> changeUserRole(@PathVariable Long id, @RequestBody UpdateRoleDTO dto) {
+        // Precisamos garantir que seu service aceite o "UserRole" e não o DTO
+        return ResponseEntity.ok(usuarioService.changeUserRole(id, dto.role()));
     }
 
     @DeleteMapping("/{id}")

@@ -30,22 +30,30 @@ public class SecurityConfig {
         this.securityFilter = securityFilter;
     }
 
+    // ✅ Bean do SecurityFilterChain (Configuração das regras de acesso)
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Usa a configuração de CORS definida abaixo
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // Rotas públicas de autenticação
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
 
-                        // ✅ REGRA ADICIONADA PARA RESOLVER O ERRO 403 ✅
-                        .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated()
+                        // Regra para servir as fotos de perfil publicamente
+                        .requestMatchers("/user-photos/**").permitAll()
 
                         // Regras de Admin
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/configuracoes/**").hasRole("ADMIN") // O resto de /configuracoes é para admin
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/api/configuracoes/**").hasRole("ADMIN")
+
+                        // Regras para usuários autenticados (USER ou ADMIN)
+                        .requestMatchers("/api/componentes/**").authenticated()
+                        .requestMatchers("/api/requisicoes/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated() // GET é autenticado
 
                         // Qualquer outra rota precisa de autenticação
                         .anyRequest().authenticated()
@@ -54,14 +62,17 @@ public class SecurityConfig {
                 .build();
     }
 
-    // MELHORIA: Bean de configuração do CORS
+    // ✅ Bean de configuração do CORS (Quem pode acessar a API)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite requisições da origem do seu frontend React
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        // Permite requisições das origens dos seus frontends
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173", // Seu frontend WEB
+                "http://localhost:8081"  // Seu frontend MOBILE (Expo Web) - ADICIONADO
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos os headers
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -69,11 +80,13 @@ public class SecurityConfig {
         return source;
     }
 
+    // ✅ Bean do AuthenticationManager (Quem gerencia a autenticação)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    // ✅ Bean do PasswordEncoder (Como criptografar senhas)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

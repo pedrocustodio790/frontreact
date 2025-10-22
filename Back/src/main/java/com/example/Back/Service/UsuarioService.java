@@ -80,4 +80,15 @@ public class UsuarioService {
     private UsuarioDTO toDTO(Usuario usuario) {
         return new UsuarioDTO(usuario.getId(), usuario.getEmail(), usuario.getRole());
     }
+    public List<Usuario> findAllUsers() {
+        return usuarioRepository.findAll();
+    }
+    public Usuario updateUserRole(Long id, UserRole newRole) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + id));
+
+        usuario.setRole(newRole);
+        return usuarioRepository.save(usuario);
+    }
 }
+

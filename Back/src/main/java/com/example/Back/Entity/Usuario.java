@@ -1,5 +1,6 @@
 package com.example.Back.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +33,7 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    private String nome; // Adicione o campo nome, se ainda não tiver
+    private String nome;
     private String caminhoFotoPerfil;
 
     @Override
@@ -45,21 +46,38 @@ public class Usuario implements UserDetails {
         }
     }
 
+    // ✅ Este é o único método getPassword() necessário.
+    // A anotação @JsonIgnore impede que a senha seja enviada em respostas JSON.
     @Override
-    public String getPassword() { return this.senha; }
+    @JsonIgnore
+    public String getPassword() {
+        return this.senha;
+    }
 
     @Override
-    public String getUsername() { return this.email; }
+    public String getUsername() {
+        return this.email;
+    }
+
+    // --- Métodos de status da conta ---
 
     @Override
-    public boolean isAccountNonExpired() { return true; }
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
     @Override
-    public boolean isCredentialsNonExpired() { return true; }
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() {
+        return true;
+    }
 }
