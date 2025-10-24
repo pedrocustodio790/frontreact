@@ -32,40 +32,42 @@ public class SecurityConfig {
 
     // ✅ Bean do SecurityFilterChain (Configuração das regras de acesso)
     // ✅ Bean do SecurityFilterChain (Configuração das regras de acesso)
+// Em: src/main/java/com/example/Back/config/SecurityConfig.java
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Usa a configuração de CORS definida abaixo
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Rotas públicas de autenticação
+                        // --- Rotas Públicas ---
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers("/user-photos/**").permitAll() // Fotos públicas
+
+                        // --- Rotas de Usuário Autenticado ---
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated() // Ver próprio perfil
+                        .requestMatchers(HttpMethod.POST, "/api/requisicoes").authenticated() // Criar requisição de estoque
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos-compra").authenticated() // Criar pedido de compra
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos-compra/me").authenticated() // Ver próprios pedidos
+                        .requestMatchers("/api/componentes/**").authenticated() // Ver/Buscar componentes
+                        .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated() // Ver limite
+
+                        // --- Rotas de ADMIN ---
+                        // (Regras específicas vêm ANTES das genéricas)
+                        .requestMatchers(HttpMethod.GET, "/api/requisicoes/pendentes").hasRole("ADMIN") // ✅ REGRA ADICIONADA AQUI E NA ORDEM CERTA
+                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes/**/aprovar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes/**/recusar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos-compra/pendentes").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/**/aprovar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/**/recusar").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/{id}/reset-password").hasRole("ADMIN")
-                        // Rota para o perfil do usuário logado
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                        .requestMatchers("/api/users/**").hasRole("ADMIN") // Regra genérica para /users
+                        .requestMatchers("/api/configuracoes/**").hasRole("ADMIN") // Regra genérica para /configuracoes
 
-                        // Regra para servir as fotos de perfil publicamente
-                        .requestMatchers("/user-photos/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/requisicoes").authenticated() // Qualquer user logado pode PEDIR
-
-                        // Regras de Admin (APENAS /api/users)
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/configuracoes/**").hasRole("ADMIN")
-
-                        // Regras para usuários autenticados (USER ou ADMIN)
-                        .requestMatchers("/api/componentes/**").authenticated()
-                        .requestMatchers("/api/requisicoes/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated() // GET é autenticado
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos-compra").authenticated() // User pode criar
-                        .requestMatchers(HttpMethod.GET, "/api/pedidos-compra/me").authenticated() // User pode ver os seus
-                        .requestMatchers("/api/pedidos-compra/**").hasRole("ADMIN") // Admin faz o resto
-                        // Qualquer outra rota precisa de autenticação
-                        .anyRequest().authenticated()
+                        // --- Qualquer outra rota ---
+                        .anyRequest().authenticated() // Exige autenticação por padrão
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
