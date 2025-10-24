@@ -1,25 +1,41 @@
 package com.example.Back.Entity;
 
-import jakarta.persistence.
-        *;
-import lombok.Data;
-import java.time.LocalDateTime;
+    import com.example.Back.Entity.Componente;
+    import com.example.Back.Entity.Usuario;
+    import jakarta.persistence.
+            *;
+    import lombok.Data;
+    import java.time.LocalDateTime;
+    import java.util.Date;
 
-@Entity
-@Data // Esta anotação já cria TODOS os getters e setters para nós\!
-public class Requisicao {
+    @Entity
+    @Table(name = "requisicao")
+    @Data
+    public class Requisicao {
 
-// --- CAMPOS (Os "dados" que a entidade guarda) ---
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Temporal(TemporalType.TIMESTAMP)
+        @Column(name = "data_requisicao")
+        private Date dataRequisicao;
 
-    @ManyToOne
-    @JoinColumn(name = "componente_id", nullable = false)
-    private Componente componente;
+        private String status;
 
-    private LocalDateTime dataRequisicao;
+        @ManyToOne // O componente que foi pedido
+        @JoinColumn(name = "componente_id", nullable = false)
+        private Componente componente;
 
-    private String status;
+        // --- ✅ CAMPOS ADICIONADOS ---
+
+        @Column(nullable = false)
+        private Integer quantidade; // Quantos foram pedidos
+
+        @Column(length = 1000) // Para justificativas
+        private String observacao;
+
+        @ManyToOne // O usuário que pediu
+        @JoinColumn(name = "usuario_id", nullable = false)
+        private Usuario usuario;
     }

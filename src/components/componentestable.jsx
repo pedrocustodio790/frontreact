@@ -1,5 +1,7 @@
-// Em src/components/ComponentesTable.jsx (ATUALIZADO)
+// Em: src/components/ComponentesTable.jsx
 import React from "react";
+
+// Imports do MUI (necessários para este componente)
 import {
   Paper,
   Table,
@@ -15,7 +17,6 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-// 1. A prop 'componentes' agora espera 'localizacao' e 'categoria'
 function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
@@ -26,12 +27,10 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Quantidade</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>
-                Localização
-              </TableCell>{" "}
-              {/* ✅ Coluna Nova */}
-              <TableCell sx={{ fontWeight: "bold" }}>Categoria</TableCell>{" "}
-              {/* ✅ Coluna Nova */}
+              <TableCell sx={{ fontWeight: "bold" }}>Localização</TableCell>
+              {/* O {" "} FOI REMOVIDO DAQUI */}
+              <TableCell sx={{ fontWeight: "bold" }}>Categoria</TableCell>
+              {/* O {" "} FOI REMOVIDO DAQUI */}
               {isAdmin && (
                 <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
                   Ações
@@ -46,10 +45,10 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                   <TableCell>{componente.nome}</TableCell>
                   <TableCell>{componente.codigoPatrimonio}</TableCell>
                   <TableCell>{componente.quantidade}</TableCell>
-                  <TableCell>{componente.localizacao}</TableCell>{" "}
-                  {/* ✅ Coluna Nova */}
-                  <TableCell>{componente.categoria}</TableCell>{" "}
-                  {/* ✅ Coluna Nova */}
+                  <TableCell>{componente.localizacao}</TableCell>
+                  {/* O {" "} FOI REMOVIDO DAQUI */}
+                  <TableCell>{componente.categoria}</TableCell>
+                  {/* O {" "} FOI REMOVIDO DAQUI */}
                   {isAdmin && (
                     <TableCell align="right">
                       <Stack
@@ -78,7 +77,6 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               ))
             ) : (
               <TableRow>
-                {/* 2. O colSpan agora é 6 (ou 5 se não for admin) */}
                 <TableCell colSpan={isAdmin ? 6 : 5} align="center">
                   <Typography color="text.secondary" sx={{ p: 3 }}>
                     Nenhum componente encontrado.

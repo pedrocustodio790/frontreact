@@ -1,8 +1,7 @@
+// Em: src/pages/RequisicoesPage.jsx (Ajustado)
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-
-// ✅ Imports de Componentes do MUI
 import {
   Box,
   Button,
@@ -16,6 +15,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Stack, // Importe o Stack para os botões
 } from "@mui/material";
 
 function RequisicoesPage() {
@@ -25,9 +25,9 @@ function RequisicoesPage() {
   const fetchRequisicoes = async () => {
     setLoading(true);
     try {
-      // ✅ API PATH CORRIGIDO
+      // ✅ BUG 1 CORRIGIDO: /api/ removido
       const response = await api.get("/requisicoes/pendentes");
-      setRequisicoes(response.data);
+      setRequisicoes(response.data.content); // Assumindo que é paginado
     } catch (error) {
       toast.error("Falha ao carregar as requisições pendentes.");
       console.error(error);
@@ -40,19 +40,31 @@ function RequisicoesPage() {
     fetchRequisicoes();
   }, []);
 
-  const handleMarcarConcluido = async (id) => {
+  // ✅ Lógica de Ação Atualizada
+  const handleAprovar = async (id) => {
     try {
-      // ✅ API PATH CORRIGIDO
-      await api.put(`/requisicoes/${id}/concluir`);
-      toast.success("Requisição marcada como concluída!");
-      fetchRequisicoes(); // Recarrega a lista para remover o item concluído
+      // ✅ BUG 1 CORRIGIDO: /api/ removido
+      await api.put(`/requisicoes/${id}/aprovar`); // Endpoint "Aprovar"
+      toast.success("Requisição APROVADA!");
+      fetchRequisicoes();
     } catch (error) {
-      toast.error("Falha ao atualizar a requisição.");
+      toast.error("Falha ao aprovar a requisição.");
       console.error(error);
     }
   };
 
-  // ✅ A Sidebar não é mais necessária aqui, pois ela já está no App.jsx envolvendo o <Outlet>
+  const handleRecusar = async (id) => {
+    try {
+      // ✅ BUG 1 CORRIGIDO: /api/ removido
+      await api.put(`/requisicoes/${id}/recusar`); // Endpoint "Recusar"
+      toast.warn("Requisição RECUSADA.");
+      fetchRequisicoes();
+    } catch (error) {
+      toast.error("Falha ao recusar a requisição.");
+      console.error(error);
+    }
+  };
+
   return (
     <Box
       component="main"
@@ -80,12 +92,19 @@ function RequisicoesPage() {
                   <TableRow>
                     <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
-                      Patrimônio/Identificador
+                      Patrimônio
+                    </TableCell>
+                    {/* ✅ BUG 2 CORRIGIDO: Novas Colunas */}
+                    <TableCell sx={{ fontWeight: "bold" }}>
+                      Qtd. Pedida
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
-                      Data da Requisição
+                      Solicitante
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Ações</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
+                      Ações
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -94,23 +113,42 @@ function RequisicoesPage() {
                       <TableRow hover key={req.id}>
                         <TableCell>{req.componenteNome}</TableCell>
                         <TableCell>{req.componenteCodigoPatrimonio}</TableCell>
+                        {/* ✅ BUG 2 CORRIGIDO: Novos Dados */}
+                        <TableCell>{req.quantidade}</TableCell>
+                        <TableCell>{req.usuarioNome}</TableCell>
                         <TableCell>
                           {new Date(req.dataRequisicao).toLocaleString("pt-BR")}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleMarcarConcluido(req.id)}
+                          {/* ✅ Ações Atualizadas */}
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            justifyContent="center"
                           >
-                            Marcar como Concluído
-                          </Button>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              color="success"
+                              onClick={() => handleAprovar(req.id)}
+                            >
+                              Aprovar
+                            </Button>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              color="error"
+                              onClick={() => handleRecusar(req.id)}
+                            >
+                              Recusar
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={6} align="center">
                         Nenhuma requisição pendente.
                       </TableCell>
                     </TableRow>

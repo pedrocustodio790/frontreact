@@ -42,12 +42,13 @@ public class SecurityConfig {
                         // Rotas públicas de autenticação
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**/reset-password").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}/reset-password").hasRole("ADMIN")
                         // Rota para o perfil do usuário logado
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 
                         // Regra para servir as fotos de perfil publicamente
                         .requestMatchers("/user-photos/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/requisicoes").authenticated() // Qualquer user logado pode PEDIR
 
                         // Regras de Admin (APENAS /api/users)
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")

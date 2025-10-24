@@ -117,8 +117,12 @@ function ModalComponente({
             fullWidth
             variant="outlined"
             value={quantidade}
-            onChange={(e) => setQuantidade(parseInt(e.target.value))}
-            InputProps={{ inputProps: { min: 1 } }} // Garante que a quantidade não seja menor que 1
+            onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+            slotProps={{
+              input: {
+                min: 1,
+              },
+            }}
           />
         </DialogContent>
 

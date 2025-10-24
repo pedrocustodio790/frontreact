@@ -54,9 +54,7 @@ public class ComponenteService {
         criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
 
         // Verifica se o novo item já está abaixo do nível mínimo
-        if (componenteSalvo.getQuantidade() <= componenteSalvo.getNivelMinimoEstoque()) {
-            requisicaoService.criarRequisicaoParaItem(componenteSalvo);
-        }
+    
 
         return toDTO(componenteSalvo);
     }
@@ -85,9 +83,6 @@ public class ComponenteService {
             criarRegistroHistorico(componenteAtualizado, diferenca > 0 ? TipoMovimentacao.ENTRADA : TipoMovimentacao.SAIDA, Math.abs(diferenca));
         }
 
-        if (componenteAtualizado.getQuantidade() <= componenteAtualizado.getNivelMinimoEstoque()) {
-            requisicaoService.criarRequisicaoParaItem(componenteAtualizado);
-        }
 
         return toDTO(componenteAtualizado);
     }

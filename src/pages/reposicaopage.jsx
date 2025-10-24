@@ -3,7 +3,6 @@ import api from "../services/api";
 import { toast } from "react-toastify";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
 import {
   Alert,
   Box,
@@ -12,10 +11,16 @@ import {
   Container,
   Grid,
   Typography,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
+import ActionList from "../components/actionList";
 import PrintIcon from "@mui/icons-material/Print";
-
-import ActionList from "../components/actionlist";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"; // Para estoque baixo
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"; // Para esgotado
+import React from "react"; // (Necessário para o React.Fragment)
 
 function ReposicaoPage() {
   const [componentes, setComponentes] = useState([]);
@@ -107,10 +112,11 @@ function ReposicaoPage() {
       sx={{
         flexGrow: 1,
         p: 3,
-        backgroundColor: "background.default", // ✅
+        backgroundColor: "background.default",
       }}
     >
       <Container maxWidth="lg">
+        {/* Header (estava perfeito) */}
         <Box
           display="flex"
           justifyContent="space-between"
@@ -125,48 +131,70 @@ function ReposicaoPage() {
             variant="contained"
             startIcon={<PrintIcon />}
             onClick={handleGerarPedidoPDF}
-            disabled={componentes.length === 0}
+            disabled={!necessitaReposicao} // Desabilita se não precisar de reposição
           >
             Gerar PDF
           </Button>
         </Box>
 
+        {/* Alerta de Sucesso (estava perfeito) */}
         {!necessitaReposicao && (
           <Alert severity="success" sx={{ mb: 3 }}>
             Estoque em dia! Não há itens necessitando reposição.
           </Alert>
         )}
 
+        {/* ✅ GRID E ACTIONLIST CORRIGIDOS */}
         <Grid container spacing={3}>
           {itensEmFalta.length > 0 && (
-            <Grid
-              size={{
-                xs: 12,
-                md: 6,
-              }}
-            >
+            // ✅ Bug do Grid Corrigido: (sem 'size' e sem 'item')
+            <Grid xs={12} md={6}>
+              {/* ✅ Bug do ActionList Corrigido: (usando 'children' e 'map') */}
               <ActionList
-                title="Itens Esgotados"
-                items={itensEmFalta}
-                severity="error"
+                title="Itens Esgotados (0 unidades)"
                 emptyMessage="Nenhum item completamente esgotado"
-              />
+              >
+                {itensEmFalta.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <ListItem>
+                      <ListItemIcon>
+                        <ErrorOutlineIcon color="error" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.nome}
+                        secondary={`Patrimônio: ${item.codigoPatrimonio}`}
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                ))}
+              </ActionList>
             </Grid>
           )}
 
           {itensEstoqueBaixo.length > 0 && (
-            <Grid
-              size={{
-                xs: 12,
-                md: 6,
-              }}
-            >
+            // ✅ Bug do Grid Corrigido:
+            <Grid xs={12} md={6}>
+              {/* ✅ Bug do ActionList Corrigido: */}
               <ActionList
                 title={`Itens com Estoque Baixo (≤ ${threshold} unidades)`}
-                items={itensEstoqueBaixo}
-                severity="warning"
                 emptyMessage="Nenhum item com estoque baixo"
-              />
+              >
+                {itensEstoqueBaixo.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <ListItem>
+                      <ListItemIcon>
+                        <WarningAmberIcon color="warning" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.nome}
+                        secondary={`Patrimônio: ${item.codigoPatrimonio} | Stock: ${item.quantidade}`}
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                ))}
+              </ActionList>
             </Grid>
           )}
         </Grid>
