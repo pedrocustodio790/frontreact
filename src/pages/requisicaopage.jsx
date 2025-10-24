@@ -26,7 +26,7 @@ function RequisicoesPage() {
     setLoading(true);
     try {
       // ✅ BUG 1 CORRIGIDO: /api/ removido
-      const response = await api.get("/requisicoes/pendentes");
+      const response = await api.get("/requisicoes/pendentes"); 
       setRequisicoes(response.data.content); // Assumindo que é paginado
     } catch (error) {
       toast.error("Falha ao carregar as requisições pendentes.");
@@ -71,12 +71,7 @@ function RequisicoesPage() {
       sx={{ flexGrow: 1, p: 3, backgroundColor: "background.default" }}
     >
       <Container maxWidth="lg">
-        <Typography
-          variant="h4"
-          component="h1"
-          fontWeight="bold"
-          sx={{ mb: 4 }}
-        >
+        <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 4 }}>
           Requisições Pendentes
         </Typography>
 
@@ -91,20 +86,12 @@ function RequisicoesPage() {
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Patrimônio
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
                     {/* ✅ BUG 2 CORRIGIDO: Novas Colunas */}
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Qtd. Pedida
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Solicitante
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Qtd. Pedida</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Solicitante</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
-                      Ações
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", textAlign: 'center' }}>Ações</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -115,17 +102,13 @@ function RequisicoesPage() {
                         <TableCell>{req.componenteCodigoPatrimonio}</TableCell>
                         {/* ✅ BUG 2 CORRIGIDO: Novos Dados */}
                         <TableCell>{req.quantidade}</TableCell>
-                        <TableCell>{req.usuarioNome}</TableCell>
+                        <TableCell>{req.usuarioNome}</TableCell> 
                         <TableCell>
                           {new Date(req.dataRequisicao).toLocaleString("pt-BR")}
                         </TableCell>
                         <TableCell>
                           {/* ✅ Ações Atualizadas */}
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            justifyContent="center"
-                          >
+                          <Stack direction="row" spacing={1} justifyContent="center">
                             <Button
                               variant="contained"
                               size="small"

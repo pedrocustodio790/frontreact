@@ -1,4 +1,5 @@
-// Em src/pages/ComponentesPage.jsx (REFORMADO)
+// Em: src/pages/ComponentesPage.jsx (VERSÃO FINAL LIMPA)
+
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { CSVLink } from "react-csv";
@@ -15,22 +16,25 @@ import AddIcon from "@mui/icons-material/Add";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
-import ModalComponente from "../components/modalcomponente";
 import api from "../services/api";
 import { isAdmin } from "../services/authService";
-// ✅ 1. IMPORTE O COMPONENTE QUE ACABAMOS DE ATUALIZAR
 import ComponentesTable from "../components/componentestable";
+import ModalComponente from "../components/modalcomponente";
+import ModalSolicitarItem from "../components/ModalSolicitarItem"; // ✅ Importa o modal de solicitação
+
 function ComponentesPage() {
-  // --- TODA A SUA LÓGICA "INTELIGENTE" (PERFEITA) ---
   const [componentes, setComponentes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [componenteEmEdicao, setComponenteEmEdicao] = useState(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Estados dos Modais
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [componenteEmEdicao, setComponenteEmEdicao] = useState(null);
+  const [itemParaSolicitar, setItemParaSolicitar] = useState(null); // ✅ Estado para o novo modal
+
+  // --- Funções de API e Handlers ---
   const fetchData = async () => {
-    // ... (sua função fetchData - perfeita)
     setLoading(true);
     try {
       const response = await api.get("/componentes");
@@ -43,14 +47,23 @@ function ComponentesPage() {
     }
   };
 
+  useEffect(() => {
+    setIsUserAdmin(isAdmin());
+    fetchData();
+  }, []);
+
+  // --- Handlers do ADMIN (CRUD) ---
+  const handleAdd = () => {
+    setComponenteEmEdicao(null);
+    setModalVisible(true);
+  };
+
   const handleEdit = (componente) => {
-    // ... (sua função handleEdit - perfeita)
     setComponenteEmEdicao(componente);
     setModalVisible(true);
   };
 
   const handleDelete = async (id) => {
-    // ... (sua função handleDelete - perfeita)
     if (window.confirm("Você tem certeza que deseja excluir este item?")) {
       try {
         await api.delete(`/componentes/${id}`);
@@ -58,66 +71,57 @@ function ComponentesPage() {
         fetchData();
       } catch (error) {
         toast.error("Falha ao excluir o item.");
-        console.error(error);
       }
     }
   };
 
-  const handleAdd = () => {
-    // ... (sua função handleAdd - perfeita)
-    setComponenteEmEdicao(null);
-    setModalVisible(true);
+  // --- ✅ Handlers do USER (Solicitação) ---
+  const handleOpenSolicitar = (componente) => {
+    setItemParaSolicitar(componente);
   };
 
+  const handleCloseSolicitar = () => {
+    setItemParaSolicitar(null);
+  };
+
+  const handleSolicitado = () => {
+    handleCloseSolicitar();
+    // Você pode adicionar fetchData() se quiser atualizar a lista após solicitar
+  };
+
+  // --- Handlers do CSV (Import/Export) ---
   const handleImportClick = () => {
-    // ... (sua função handleImportClick - perfeita)
     fileInputRef.current.click();
   };
 
   const handleFileUpload = (event) => {
-    // ... (sua função handleFileUpload - perfeita)
     const file = event.target.files[0];
     if (!file) return;
-
     setLoading(true);
     toast.info("Processando arquivo CSV...");
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          // ✅ API CORRIGIDA PARA BATCH
           await api.post("/componentes/batch", results.data);
-          toast.success(
-            `${results.data.length} componentes importados com sucesso!`
-          );
+          toast.success(`${results.data.length} componentes importados!`);
           fetchData();
         } catch (error) {
-          console.error("Erro ao importar componentes:", error);
-          toast.error("Falha ao importar dados. Verifique o console.");
+          toast.error("Falha ao importar dados.");
         } finally {
           setLoading(false);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
+          if (fileInputRef.current) fileInputRef.current.value = "";
         }
       },
-      error: (error) => {
+      error: () => {
         setLoading(false);
         toast.error("Erro ao ler o arquivo CSV.");
-        console.error("Erro do PapaParse:", error);
       },
     });
   };
 
-  useEffect(() => {
-    setIsUserAdmin(isAdmin());
-    fetchData();
-  }, []);
-
   const headers = [
-    // ... (sua lógica de headers - perfeita)
     { label: "ID", key: "id" },
     { label: "Nome", key: "nome" },
     { label: "Patrimônio", key: "codigoPatrimonio" },
@@ -127,13 +131,12 @@ function ComponentesPage() {
   ];
 
   const csvReport = {
-    // ... (sua lógica do csvReport - perfeita)
     data: componentes,
     headers: headers,
     filename: "Relatorio_Componentes.csv",
   };
 
-  // --- JSX "LIMPO" ---
+  // --- JSX ---
   return (
     <Box
       component="main"
@@ -153,7 +156,7 @@ function ComponentesPage() {
       />
 
       <Container maxWidth="xl">
-        {/* O Header (perfeito) */}
+        {/* Header (com os botões) */}
         <Box
           sx={{
             display: "flex",
@@ -166,25 +169,24 @@ function ComponentesPage() {
             Gerenciamento de Itens
           </Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
-            {/* ... (seus botões de Import, Add, Export - perfeitos) ... */}
             {isUserAdmin && (
-              <Button
-                variant="contained"
-                startIcon={<UploadFileIcon />}
-                onClick={handleImportClick}
-              >
-                Importar CSV
-              </Button>
-            )}
-            {isUserAdmin && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAdd}
-                color="primary"
-              >
-                Adicionar Item
-              </Button>
+              <>
+                <Button
+                  variant="contained"
+                  startIcon={<UploadFileIcon />}
+                  onClick={handleImportClick}
+                >
+                  Importar CSV
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleAdd}
+                  color="primary"
+                >
+                  Adicionar Item
+                </Button>
+              </>
             )}
             <CSVLink {...csvReport} style={{ textDecoration: "none" }}>
               <Button variant="outlined" startIcon={<FileDownloadIcon />}>
@@ -194,28 +196,34 @@ function ComponentesPage() {
           </Box>
         </Box>
 
+        {/* Tabela de Componentes */}
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
             <CircularProgress />
           </Box>
         ) : (
-          // ✅ 2. A "REFORMA" ACONTECEU AQUI!
-          // Trocamos 70 linhas de tabela por UMA linha de componente.
           <ComponentesTable
             componentes={componentes}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onSolicitar={handleOpenSolicitar} // ✅ A PROP "onSolicitar" ESTÁ AQUI
             isAdmin={isUserAdmin}
           />
         )}
       </Container>
 
-      {/* O Modal (perfeito) */}
       <ModalComponente
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
         onComponenteAdicionado={fetchData}
         componenteParaEditar={componenteEmEdicao}
+      />
+
+      <ModalSolicitarItem
+        isVisible={!!itemParaSolicitar}
+        onClose={handleCloseSolicitar}
+        onSolicitado={handleSolicitado}
+        itemParaSolicitar={itemParaSolicitar}
       />
     </Box>
   );

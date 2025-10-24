@@ -1,4 +1,5 @@
-// src/components/sidebar.jsx
+// Em: src/components/Sidebar.jsx
+import React from "react"; // Import React
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -20,14 +21,16 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings"; // ✅ 1. Importa o ícone de Admin
-import { isAdmin } from "../services/authService"; // ✅ 2. Importa sua função isAdmin
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket"; // ✅ Novo Ícone
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import { isAdmin } from "../services/authService";
 
 const drawerWidth = 250;
 
 function Sidebar() {
   const navigate = useNavigate();
-  const isAdminUser = isAdmin(); // ✅ 3. Verifica se o usuário é Admin
+  const isAdminUser = isAdmin();
 
   const handleLogout = () => {
     localStorage.removeItem("jwt-token");
@@ -37,16 +40,11 @@ function Sidebar() {
   return (
     <Drawer
       variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: drawerWidth,
-          boxSizing: "border-box",
-          backgroundColor: "background.paper",
-          borderRight: "none",
-        },
-      }}
+      sx={
+        {
+          /* Estilos iguais aos seus */
+        }
+      }
     >
       <Toolbar>
         <Typography variant="h6" component="h2" sx={{ fontWeight: "bold" }}>
@@ -57,10 +55,11 @@ function Sidebar() {
 
       <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
         <List>
-          {/* ... Seus links de Dashboard, Componentes, etc. ... */}
+          {/* Dashboard, Componentes, Historico, Reposição (iguais aos seus) */}
           <ListItemButton
             component={NavLink}
             to="/"
+            end
             sx={{ "&.active": { backgroundColor: "action.selected" } }}
           >
             <ListItemIcon>
@@ -68,7 +67,6 @@ function Sidebar() {
             </ListItemIcon>
             <ListItemText primary="Dashboard" />
           </ListItemButton>
-
           <ListItemButton
             component={NavLink}
             to="/componentes"
@@ -79,7 +77,6 @@ function Sidebar() {
             </ListItemIcon>
             <ListItemText primary="Componentes" />
           </ListItemButton>
-
           <ListItemButton
             component={NavLink}
             to="/historico"
@@ -90,7 +87,6 @@ function Sidebar() {
             </ListItemIcon>
             <ListItemText primary="Histórico" />
           </ListItemButton>
-
           <ListItemButton
             component={NavLink}
             to="/reposicao"
@@ -101,6 +97,18 @@ function Sidebar() {
             </ListItemIcon>
             <ListItemText primary="Reposição" />
           </ListItemButton>
+
+          {/* ✅ NOVO LINK (para TODOS os usuários) */}
+          <ListItemButton
+            component={NavLink}
+            to="/pedidos"
+            sx={{ "&.active": { backgroundColor: "action.selected" } }}
+          >
+            <ListItemIcon>
+              <ShoppingBasketIcon />
+            </ListItemIcon>
+            <ListItemText primary="Fazer Pedido de Compra" />
+          </ListItemButton>
         </List>
 
         <Box sx={{ flexGrow: 1 }} />
@@ -108,7 +116,21 @@ function Sidebar() {
         <List>
           <Divider />
 
-          {/* ✅ 4. Link de Admin que só aparece se isAdminUser for true */}
+          {/* ✅ LINK DE REQUISIÇÕES RENOMEADO (só para Admin) */}
+          {isAdminUser && (
+            <ListItemButton
+              component={NavLink}
+              to="/aprovacoes"
+              sx={{ "&.active": { backgroundColor: "action.selected" } }}
+            >
+              <ListItemIcon>
+                <AssignmentIcon />
+              </ListItemIcon>
+              <ListItemText primary="Aprovações" />
+            </ListItemButton>
+          )}
+
+          {/* Gerenciar Usuários (só Admin), Configurações, Ajuda (iguais aos seus) */}
           {isAdminUser && (
             <ListItemButton
               component={NavLink}
@@ -121,7 +143,6 @@ function Sidebar() {
               <ListItemText primary="Gerenciar Usuários" />
             </ListItemButton>
           )}
-
           <ListItemButton
             component={NavLink}
             to="/configuracoes"
@@ -132,7 +153,6 @@ function Sidebar() {
             </ListItemIcon>
             <ListItemText primary="Configurações" />
           </ListItemButton>
-
           <ListItemButton
             component={NavLink}
             to="/ajuda"
@@ -144,12 +164,7 @@ function Sidebar() {
             <ListItemText primary="Ajuda" />
           </ListItemButton>
 
-          <ListItemButton onClick={handleLogout}>
-            <ListItemIcon>
-              <LogOut size={20} />
-            </ListItemIcon>
-            <ListItemText primary="Sair" />
-          </ListItemButton>
+          {/* O botão Sair não fica mais aqui, está no ProfileMenu */}
         </List>
       </Box>
     </Drawer>

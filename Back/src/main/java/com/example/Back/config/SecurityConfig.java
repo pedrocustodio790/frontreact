@@ -61,7 +61,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/componentes/**").authenticated()
                         .requestMatchers("/api/requisicoes/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/configuracoes/limiteEstoqueBaixo").authenticated() // GET é autenticado
-
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos-compra").authenticated() // User pode criar
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos-compra/me").authenticated() // User pode ver os seus
+                        .requestMatchers("/api/pedidos-compra/**").hasRole("ADMIN") // Admin faz o resto
                         // Qualquer outra rota precisa de autenticação
                         .anyRequest().authenticated()
                 )

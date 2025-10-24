@@ -54,7 +54,7 @@ public class ComponenteService {
         criarRegistroHistorico(componenteSalvo, TipoMovimentacao.ENTRADA, componenteSalvo.getQuantidade());
 
         // Verifica se o novo item já está abaixo do nível mínimo
-    
+
 
         return toDTO(componenteSalvo);
     }

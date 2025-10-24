@@ -1,7 +1,5 @@
-// Em: src/components/ComponentesTable.jsx
+// Em: src/components/ComponentesTable.jsx (VERSÃO REVERTIDA)
 import React from "react";
-
-// Imports do MUI (necessários para este componente)
 import {
   Paper,
   Table,
@@ -17,6 +15,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+// Esta versão SÓ aceita onEdit, onDelete, e isAdmin
 function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
@@ -28,9 +27,9 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Quantidade</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Localização</TableCell>
-              {/* O {" "} FOI REMOVIDO DAQUI */}
               <TableCell sx={{ fontWeight: "bold" }}>Categoria</TableCell>
-              {/* O {" "} FOI REMOVIDO DAQUI */}
+
+              {/* Coluna de Ações SÓ aparece para Admin */}
               {isAdmin && (
                 <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
                   Ações
@@ -46,9 +45,9 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                   <TableCell>{componente.codigoPatrimonio}</TableCell>
                   <TableCell>{componente.quantidade}</TableCell>
                   <TableCell>{componente.localizacao}</TableCell>
-                  {/* O {" "} FOI REMOVIDO DAQUI */}
                   <TableCell>{componente.categoria}</TableCell>
-                  {/* O {" "} FOI REMOVIDO DAQUI */}
+
+                  {/* Célula de Ações SÓ aparece para Admin */}
                   {isAdmin && (
                     <TableCell align="right">
                       <Stack
@@ -77,6 +76,7 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               ))
             ) : (
               <TableRow>
+                {/* O colSpan está correto (5 ou 6, dependendo do Admin) */}
                 <TableCell colSpan={isAdmin ? 6 : 5} align="center">
                   <Typography color="text.secondary" sx={{ p: 3 }}>
                     Nenhum componente encontrado.

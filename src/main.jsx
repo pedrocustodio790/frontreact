@@ -1,43 +1,62 @@
-import React from "react";
+// Em: src/main.jsx
+import React from "react"; // Import React
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import RegisterPage from "./pages/RegisterPage.jsx";
+
+// Imports das Páginas
 import App from "./App.jsx";
 import LoginPage from "./pages/loginpage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import DashboardPage from "./pages/dashboardpage.jsx";
 import ComponentesPage from "./pages/componentepages.jsx";
 import HistoricoPage from "./pages/historicopage.jsx";
-import ConfiguracoesPage from "./pages/configuracaopages.jsx";
 import ReposicaoPage from "./pages/reposicaopage.jsx";
+import ConfiguracoesPage from "./pages/configuracaopages.jsx";
 import AjudaPage from "./pages/ajudapage.jsx";
+import UserManagementPage from "./pages/UserManagementpage.jsx";
+// ✅ REMOVA O IMPORT DA PÁGINA ANTIGA
+// import RequisicoesPage from './pages/RequisicoesPage.jsx';
+// ✅ ADICIONE AS DUAS NOVAS PÁGINAS
+import AprovacoesPage from "./pages/Aprovacaopages.jsx";
+import PedidosPage from "./pages/Pedidopages.jsx";
+
+// Imports de Componentes e Contexto
+import AdminRoute from "./components/Adminroute.jsx";
 import { ThemeProvider } from "./context/themecontext.jsx";
 import "./index.css";
-import UserManagementPage from "./pages/UserManagementpage.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
+      // --- Rotas Normais (Todos logados) ---
       { index: true, element: <DashboardPage /> },
-      { path: "/componentes", element: <ComponentesPage /> }, // ✅ 2. Rota duplicada removida
+      { path: "/componentes", element: <ComponentesPage /> },
       { path: "/historico", element: <HistoricoPage /> },
       { path: "/reposicao", element: <ReposicaoPage /> },
-      { path: "/configuracoes", element: <ConfiguracoesPage /> },
+      { path: "/configuracoes", element: <ConfiguracoesPage /> }, // Ajuste se for só Admin
       { path: "/ajuda", element: <AjudaPage /> },
-      { path: "/gerenciar-usuarios", element: <UserManagementPage /> },
+
+      // ✅ A NOVA PÁGINA DE "PEDIR A MAKITA" (para todos)
+      { path: "/pedidos", element: <PedidosPage /> },
+
+      // --- Rotas de Admin (Protegidas) ---
+      {
+        element: <AdminRoute />,
+        children: [
+          { path: "/gerenciar-usuarios", element: <UserManagementPage /> },
+
+          // ✅ A NOVA PÁGINA DE APROVAÇÕES (para Admin)
+          { path: "/aprovacoes", element: <AprovacoesPage /> },
+        ],
+      },
     ],
   },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/register", // ✅ 2. Adicione a nova rota
-    element: <RegisterPage />,
-  },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -47,7 +66,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <ToastContainer
         position="bottom-right"
         autoClose={3000}
-        hideProgressBar={false}
         theme="colored"
       />
     </ThemeProvider>
