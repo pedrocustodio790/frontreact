@@ -1,9 +1,13 @@
 package com.example.Back.Controller;
 
+import com.example.Back.Dto.AcaoRequestDTO;
 import com.example.Back.Dto.PedidoCompraCreateDTO;
 import com.example.Back.Dto.PedidoCompraDTO;
+import com.example.Back.Entity.PedidoCompra;
+import com.example.Back.Entity.Usuario;
 import com.example.Back.Service.PedidoCompraService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -46,16 +50,31 @@ public class PedidoCompraController {
     // Endpoint para o ADMIN aprovar
     @PutMapping("/{id}/aprovar")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> aprovarPedido(@PathVariable Long id) {
-        pedidoCompraService.aprovarPedido(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<PedidoCompraDTO> aprovarPedido( // ✅ 2. MUDOU O RETORNO
+                                                          @PathVariable Long id,
+                                                          @RequestBody @Valid AcaoRequestDTO dto, // ✅ 3. RECEBE O MOTIVO
+                                                          Authentication authentication // ✅ 4. RECEBE O ADMIN LOGADO
+    ) {
+        // Pega o usuário (admin) que está fazendo a chamada
+        Usuario adminLogado = (Usuario) authentication.getPrincipal();
+
+        // Chama o service atualizado
+        PedidoCompra pedidoAtualizado = pedidoCompraService.aprovarPedido(id, dto.getMotivo(), adminLogado);
+
+        // Retorna o pedido completo com os dados da auditoria
+        return ResponseEntity.ok(new PedidoCompraDTO(pedidoAtualizado));
     }
 
     // Endpoint para o ADMIN recusar
     @PutMapping("/{id}/recusar")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> recusarPedido(@PathVariable Long id) {
-        pedidoCompraService.recusarPedido(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<PedidoCompraDTO> recusarPedido( // ✅ 2. MUDOU O RETORNO
+                                                          @PathVariable Long id,
+                                                          @RequestBody @Valid AcaoRequestDTO dto, // ✅ 3. RECEBE O MOTIVO
+                                                          Authentication authentication // ✅ 4. RECEBE O ADMIN LOGADO
+    ) {
+        Usuario adminLogado = (Usuario) authentication.getPrincipal();
+        PedidoCompra pedidoAtualizado = pedidoCompraService.recusarPedido(id, dto.getMotivo(), adminLogado);
+        return ResponseEntity.ok(new PedidoCompraDTO(pedidoAtualizado));
     }
 }

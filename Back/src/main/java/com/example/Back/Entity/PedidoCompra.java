@@ -33,4 +33,19 @@ public class PedidoCompra {
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "aprovador_id") // É nulo até que alguém tome uma ação
+    private Usuario aprovador;
+
+    // 2. QUANDO foi a ação
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_acao")
+    private Date dataAcao;
+
+    // 3. PORQUÊ (o motivo do admin)
+    @Column(name = "motivo_acao", length = 1000)
+    private String motivoAcao;
+
+
 }

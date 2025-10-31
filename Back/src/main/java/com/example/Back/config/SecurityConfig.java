@@ -57,11 +57,11 @@ public class SecurityConfig {
                         // --- Rotas de ADMIN ---
                         // (Regras específicas vêm ANTES das genéricas)
                         .requestMatchers(HttpMethod.GET, "/api/requisicoes/pendentes").hasRole("ADMIN") // ✅ REGRA ADICIONADA AQUI E NA ORDEM CERTA
-                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes/**/aprovar").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes/**/recusar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes/{id}/aprovar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/requisicoes{id}/recusar").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/pedidos-compra/pendentes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/**/aprovar").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/**/recusar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/{id}/aprovar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos-compra/{id}/recusar").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/{id}/reset-password").hasRole("ADMIN")
                         .requestMatchers("/api/users/**").hasRole("ADMIN") // Regra genérica para /users
                         .requestMatchers("/api/configuracoes/**").hasRole("ADMIN") // Regra genérica para /configuracoes

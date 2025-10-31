@@ -65,19 +65,35 @@ public class PedidoCompraService {
 
     // Para o Admin aprovar
     @Transactional
-    public void aprovarPedido(Long id) {
+    public PedidoCompra aprovarPedido(Long id, String motivo, Usuario adminLogado) {
         PedidoCompra pedido = pedidoCompraRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        // Atualiza o status
         pedido.setStatus("APROVADO");
-        pedidoCompraRepository.save(pedido);
+
+        // ✅ 1. PREENCHE OS NOVOS CAMPOS DE AUDITORIA
+        pedido.setAprovador(adminLogado); // QUEM
+        pedido.setDataAcao(new Date());   // QUANDO
+        pedido.setMotivoAcao(motivo);   // PORQUÊ
+
+        return pedidoCompraRepository.save(pedido);
     }
 
     // Para o Admin recusar
     @Transactional
-    public void recusarPedido(Long id) {
+    public PedidoCompra recusarPedido(Long id, String motivo, Usuario adminLogado) {
         PedidoCompra pedido = pedidoCompraRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        // Atualiza o status
         pedido.setStatus("RECUSADO");
-        pedidoCompraRepository.save(pedido);
+
+        // ✅ 2. PREENCHE OS NOVOS CAMPOS DE AUDITORIA
+        pedido.setAprovador(adminLogado); // QUEM
+        pedido.setDataAcao(new Date());   // QUANDO
+        pedido.setMotivoAcao(motivo);   // PORQUÊ
+
+        return pedidoCompraRepository.save(pedido);
     }
 }
