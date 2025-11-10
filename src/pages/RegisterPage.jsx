@@ -81,15 +81,26 @@ export default function RegisterPage() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{
+        // <--- CORRIGIDO (Adicionado para centralizar)
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+      }}
+    >
       <Paper
         elevation={6}
         sx={{
-          marginTop: 8,
+          // marginTop: 20, // <--- CORRIGIDO (REMOVIDO!)
           padding: 4,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          borderRadius: 2, // (bônus, pra ficar bonito igual o login)
         }}
       >
         <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
@@ -102,12 +113,11 @@ export default function RegisterPage() {
           component="form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          sx={{ mt: 3 }}
+          sx={{ mt: 3, width: "100%" }} // <--- BÔNUS (garante 100% de largura)
         >
           <Grid container spacing={2}>
             <Grid
-              item
-              xs={12}
+              size={12} // <--- CORRIGIDO (de 13 para 12)
               sx={{
                 display: "flex",
                 flexDirection: "column",
@@ -133,7 +143,8 @@ export default function RegisterPage() {
               </Button>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
+              {/* <--- CORRIGIDO (Adicionado size) */}
               <Controller
                 name="nome"
                 control={control}
@@ -151,7 +162,7 @@ export default function RegisterPage() {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Controller
                 name="email"
                 control={control}
@@ -170,7 +181,8 @@ export default function RegisterPage() {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
+              {/* <--- CORRIGIDO (Adicionado size) */}
               <Controller
                 name="senha"
                 control={control}
@@ -193,12 +205,12 @@ export default function RegisterPage() {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{ mt: 3, mb: 2 }} // (ajustei a margem mt)
           >
             Cadastrar
           </Button>
-          <Grid container justifyContent="flex-end">
-            <Grid item>
+          <Grid container justifyContent="center">
+            <Grid>
               <Link component={RouterLink} to="/login" variant="body2">
                 Já tem uma conta? Faça login
               </Link>

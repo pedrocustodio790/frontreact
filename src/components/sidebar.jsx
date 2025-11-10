@@ -1,7 +1,7 @@
 // Em: src/components/Sidebar.jsx
 import React from "react"; // Import React
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   Box,
   Drawer,
@@ -29,22 +29,19 @@ import { isAdmin } from "../services/authService";
 const drawerWidth = 250;
 
 function Sidebar() {
-  const navigate = useNavigate();
   const isAdminUser = isAdmin();
-
-  const handleLogout = () => {
-    localStorage.removeItem("jwt-token");
-    navigate("/login");
-  };
 
   return (
     <Drawer
       variant="permanent"
-      sx={
-        {
-          /* Estilos iguais aos seus */
-        }
-      }
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        [`& .MuiDrawer-paper`]: {
+          width: drawerWidth,
+          boxSizing: "border-box",
+        },
+      }}
     >
       <Toolbar>
         <Typography variant="h6" component="h2" sx={{ fontWeight: "bold" }}>

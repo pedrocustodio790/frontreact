@@ -1,5 +1,3 @@
-// src/pages/DashboardPage.jsx (VERSÃO FINAL COMPLETA)
-
 import React, { useState, useEffect, useMemo } from "react"; // 1. React importado
 import api from "../services/api";
 import { toast } from "react-toastify";
@@ -28,7 +26,16 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber"; // (Seu import 
 // 4. Imports dos seus Componentes
 import KpiCard from "../components/kpicard";
 import ActionList from "../components/actionList";
-import CategoryChart from "../components/categoriachart";
+import {
+  ComposedChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer, // Essencial para o layout do MUI
+} from "recharts";
 
 function DashboardPage() {
   const [componentes, setComponentes] = useState([]);
@@ -109,7 +116,7 @@ function DashboardPage() {
       }}
     >
       <Container maxWidth="xl">
-        {/* Header da página */}
+        {/* Header da página - O BOTÃO VOLTOU PARA USAR A FUNÇÃO */}
         <Box
           sx={{
             display: "flex",
@@ -125,7 +132,7 @@ function DashboardPage() {
             variant="contained"
             color="primary"
             startIcon={<PictureAsPdfIcon />}
-            onClick={handleGeneratePdf}
+            onClick={handleGeneratePdf} // <--- 1. USANDO A FUNÇÃO
           >
             Gerar Relatório
           </Button>
@@ -137,40 +144,65 @@ function DashboardPage() {
           </Box>
         ) : (
           <Grid container spacing={3}>
-            {/* --- LINHA DOS KPIs --- */}
-            <Grid item xs={12} md={4}>
+            {/* --- LINHA DOS KPIs - OS COMPONENTES VOLTARAM --- */}
+            {/* 👇 CORRIGIDO (Grid API nova + Variável conectada) */}
+            <Grid size={{ xs: 12, md: 4 }}>
               <KpiCard title="Total de Itens" value={componentes.length} />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <KpiCard title="Unidades em Stock" value={totalUnidades} />
+            {/* 👇 CORRIGIDO */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <KpiCard title="Unidades em Stock" value={totalUnidades} />{" "}
+              {/* <--- 2. USANDO A VARIÁVEL */}
             </Grid>
-            <Grid item xs={12} md={4}>
-              <KpiCard title="Itens em Falta" value={itensEmFalta.length} />
+            {/* 👇 CORRIGIDO */}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <KpiCard title="Itens em Falta" value={itensEmFalta.length} />{" "}
+              {/* <--- 2. USANDO A VARIÁVEL */}
             </Grid>
 
             {/* --- LINHA DAS AÇÕES E GRÁFICO --- */}
-            <Grid item xs={12} lg={8}>
-              <Paper sx={{ p: 2, height: "100%" }}>
-                <CategoryChart componentes={componentes} />
+            {/* 👇 CORRIGIDO (Grid API nova) */}
+            <Grid size={{ xs: 12, lg: 8 }}>
+              <Paper sx={{ p: 2, height: 400 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart
+                    data={componentes}
+                    margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
+                  >
+                    <CartesianGrid stroke="#f5f5f5" />
+                    <XAxis dataKey="nome" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="quantidade" barSize={20} fill="#413ea0" />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </Paper>
             </Grid>
-            <Grid item xs={12} lg={4}>
-              {/* Usando o ActionList "reformado" */}
+
+            {/* 👇 CORRIGIDO (Grid API nova + Variável conectada) */}
+            <Grid size={{ xs: 12, lg: 4 }}>
               <ActionList title="Itens com Stock Baixo">
-                {itensEstoqueBaixo.map((item) => (
-                  <React.Fragment key={item.id}>
-                    <ListItem>
-                      <ListItemIcon>
-                        <WarningAmberIcon color="warning" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.nome}
-                        secondary={`Património: ${item.codigoPatrimonio} | Stock: ${item.quantidade}`}
-                      />
-                    </ListItem>
-                    <Divider variant="inset" component="li" />
-                  </React.Fragment>
-                ))}
+                {itensEstoqueBaixo.map(
+                  (
+                    item // <--- 3. USANDO A VARIÁVEL
+                  ) => (
+                    <React.Fragment key={item.id}>
+                      <ListItem>
+                        <ListItemIcon>
+                          <WarningAmberIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={`Património: ${
+                            item.codigoPatrimonio || "N/A"
+                          } | Stock: ${item.quantidade}`}
+                        />
+                      </ListItem>
+                      <Divider variant="inset" component="li" />
+                    </React.Fragment>
+                  )
+                )}
               </ActionList>
             </Grid>
           </Grid>
@@ -179,5 +211,4 @@ function DashboardPage() {
     </Box>
   );
 }
-
 export default DashboardPage;

@@ -1,4 +1,4 @@
-// Em: src/components/ComponentesTable.jsx (VERSÃO REVERTIDA)
+// Em: src/components/ComponentesTable.jsx (VERSÃO CORRIGIDA)
 import React from "react";
 import {
   Paper,
@@ -11,12 +11,20 @@ import {
   IconButton,
   Stack,
   Typography,
+  Button, // 1. IMPORTE O BUTTON
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart"; // 2. IMPORTE O ÍCONE
 
-// Esta versão SÓ aceita onEdit, onDelete, e isAdmin
-function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
+// 3. ACEITE "onSolicitar" NAS PROPS
+function ComponentesTable({
+  componentes,
+  onEdit,
+  onDelete,
+  onSolicitar, // <--- AQUI
+  isAdmin,
+}) {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
       <TableContainer>
@@ -29,12 +37,10 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
               <TableCell sx={{ fontWeight: "bold" }}>Localização</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Categoria</TableCell>
 
-              {/* Coluna de Ações SÓ aparece para Admin */}
-              {isAdmin && (
-                <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
-                  Ações
-                </TableCell>
-              )}
+              {/* 4. A COLUNA DE AÇÕES AGORA APARECE PARA TODOS */}
+              <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
+                Ações
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -47,9 +53,10 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                   <TableCell>{componente.localizacao}</TableCell>
                   <TableCell>{componente.categoria}</TableCell>
 
-                  {/* Célula de Ações SÓ aparece para Admin */}
-                  {isAdmin && (
-                    <TableCell align="right">
+                  {/* 5. O CONTEÚDO DA CÉLULA MUDA (Admin vs User) */}
+                  <TableCell align="right">
+                    {isAdmin ? (
+                      // --- BOTÕES DO ADMIN ---
                       <Stack
                         direction="row"
                         spacing={1}
@@ -70,14 +77,26 @@ function ComponentesTable({ componentes, onEdit, onDelete, isAdmin }) {
                           <DeleteIcon />
                         </IconButton>
                       </Stack>
-                    </TableCell>
-                  )}
+                    ) : (
+                      // --- BOTÃO DO USUÁRIO ---
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddShoppingCartIcon />}
+                        onClick={() => onSolicitar(componente)}
+                        disabled={componente.quantidade <= 0}
+                      >
+                        Solicitar
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                {/* O colSpan está correto (5 ou 6, dependendo do Admin) */}
-                <TableCell colSpan={isAdmin ? 6 : 5} align="center">
+                <TableCell colSpan={6} align="center">
+                  {" "}
+                  {/* Agora é 6 */}
                   <Typography color="text.secondary" sx={{ p: 3 }}>
                     Nenhum componente encontrado.
                   </Typography>

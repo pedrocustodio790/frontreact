@@ -144,12 +144,11 @@ function ReposicaoPage() {
           </Alert>
         )}
 
-        {/* ✅ GRID E ACTIONLIST CORRIGIDOS */}
+        {/* ✅ GRID CORRIGIDO COM A PROP 'SIZE' */}
         <Grid container spacing={3}>
           {itensEmFalta.length > 0 && (
-            // ✅ Bug do Grid Corrigido: (sem 'size' e sem 'item')
-            <Grid xs={12} md={6}>
-              {/* ✅ Bug do ActionList Corrigido: (usando 'children' e 'map') */}
+            // 👇 CORRIGIDO AQUI
+            <Grid size={{ xs: 12, md: 6 }}>
               <ActionList
                 title="Itens Esgotados (0 unidades)"
                 emptyMessage="Nenhum item completamente esgotado"
@@ -173,9 +172,8 @@ function ReposicaoPage() {
           )}
 
           {itensEstoqueBaixo.length > 0 && (
-            // ✅ Bug do Grid Corrigido:
-            <Grid xs={12} md={6}>
-              {/* ✅ Bug do ActionList Corrigido: */}
+            // 👇 CORRIGIDO AQUI
+            <Grid size={{ xs: 12, md: 6 }}>
               <ActionList
                 title={`Itens com Estoque Baixo (≤ ${threshold} unidades)`}
                 emptyMessage="Nenhum item com estoque baixo"

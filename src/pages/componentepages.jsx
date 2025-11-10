@@ -70,7 +70,13 @@ function ComponentesPage() {
         toast.success("Item excluído com sucesso!");
         fetchData();
       } catch (error) {
-        toast.error("Falha ao excluir o item.");
+        // <--- 'error' é capturado
+        console.error("Erro ao excluir:", error); // <--- 'error' AGORA É USADO
+
+        // Bônus: Mostrar uma mensagem de erro melhor
+        toast.error(
+          error.response?.data?.message || "Falha ao excluir o item."
+        );
       }
     }
   };
@@ -108,7 +114,11 @@ function ComponentesPage() {
           toast.success(`${results.data.length} componentes importados!`);
           fetchData();
         } catch (error) {
-          toast.error("Falha ao importar dados.");
+          // <--- 'error' é capturado
+          console.error("Erro ao importar CSV:", error); // <--- 'error' AGORA É USADO
+          toast.error(
+            error.response?.data?.message || "Falha ao importar dados."
+          );
         } finally {
           setLoading(false);
           if (fileInputRef.current) fileInputRef.current.value = "";

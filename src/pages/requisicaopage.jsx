@@ -114,7 +114,7 @@ function RequisicoesPage() {
           Requisições Pendentes
         </Typography>
 
-        {loading && requisicoes.length === 0 ? ( // Mostra loading só se a lista estiver vazia
+        {loading && requisicoes.length === 0 ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
             <CircularProgress />
           </Box>
@@ -152,7 +152,6 @@ function RequisicoesPage() {
                           {new Date(req.dataRequisicao).toLocaleString("pt-BR")}
                         </TableCell>
                         <TableCell>
-                          {/* ✅ 5. BOTÕES AGORA ABREM O MODAL */}
                           <Stack
                             direction="row"
                             spacing={1}
@@ -165,7 +164,8 @@ function RequisicoesPage() {
                               onClick={() =>
                                 handleAbrirModal(req.id, "aprovar")
                               }
-                              disabled={loading} // Desabilita durante o loading
+                              // 👇 CORRIGIDO AQUI (Bug 1)
+                              disabled={loading}
                             >
                               Aprovar
                             </Button>
@@ -176,7 +176,7 @@ function RequisicoesPage() {
                               onClick={() =>
                                 handleAbrirModal(req.id, "recusar")
                               }
-                              disabled={loading} // Desabilita durante o loading
+                              disabled={loading} // (Este já estava certo)
                             >
                               Recusar
                             </Button>
@@ -198,7 +198,7 @@ function RequisicoesPage() {
         )}
       </Container>
 
-      {/* ✅ 6. O MODAL DE CONFIRMAÇÃO (JSX) */}
+      {/* O MODAL DE CONFIRMAÇÃO */}
       <Dialog
         open={modalState.open}
         onClose={handleFecharModal}
@@ -220,7 +220,7 @@ function RequisicoesPage() {
             label="Motivo da Ação"
             type="text"
             fullWidth
-            variant="outlined" // Mudei para 'outlined' (mais moderno)
+            variant="outlined"
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             multiline
@@ -239,7 +239,8 @@ function RequisicoesPage() {
             onClick={handleConfirmarAcao}
             variant="contained"
             color={modalState.acao === "aprovar" ? "success" : "error"}
-            disabled={loading}
+            // 👇 CORRIGIDO AQUI (Bug 2)
+            disabled={loading || !motivo}
           >
             {loading ? (
               <CircularProgress size={24} color="inherit" />

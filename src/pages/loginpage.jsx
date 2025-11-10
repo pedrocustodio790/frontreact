@@ -137,7 +137,7 @@ function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             {/* ✅ Grid com o Link movido para o lugar correto, dentro do Stack */}
-            <Grid container justifyContent="flex-end">
+            <Grid container justifyContent="center">
               <Grid item>
                 <Link component={RouterLink} to="/register" variant="body2">
                   Não tem uma conta? Cadastre-se
