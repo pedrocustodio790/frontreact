@@ -1,5 +1,4 @@
-// Em: src/pages/RequisicoesPage.jsx (CORRIGIDO)
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // MUDANÇA: Importar useCallback
 import api from "../services/api";
 import { toast } from "react-toastify";
 import {
@@ -16,49 +15,72 @@ import {
   TableRow,
   Typography,
   Stack,
-
-  // ✅ 1. IMPORTE OS COMPONENTES DO MODAL
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   TextField,
+  TablePagination, // MUDANÇA: Importar Paginação
 } from "@mui/material";
 
 function RequisicoesPage() {
   const [requisicoes, setRequisicoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 2. ESTADOS PARA CONTROLAR O MODAL E O MOTIVO
+  // Estados do Modal (estão perfeitos)
   const [motivo, setMotivo] = useState("");
   const [modalState, setModalState] = useState({
     open: false,
-    acao: null, // 'aprovar' ou 'recusar'
+    acao: null,
     requisicaoId: null,
   });
 
-  const fetchRequisicoes = async () => {
+  // --- MUDANÇA: Estados de Paginação ---
+  const [page, setPage] = useState(0); // A página atual (começa em 0)
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Itens por página
+  const [totalElements, setTotalElements] = useState(0); // Total de itens no DB
+
+  // MUDANÇA: fetchRequisicoes agora usa useCallback e envia parâmetros
+  const fetchRequisicoes = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get("/requisicoes/pendentes");
-      setRequisicoes(response.data.content || []); // Garante que é um array
+      // MUDANÇA: Envia os parâmetros de paginação e ordena por data
+      const response = await api.get(
+        `/requisicoes/pendentes?page=${page}&size=${rowsPerPage}&sort=dataRequisicao,asc`
+      );
+
+      // MUDANÇA: Armazena o 'content' e os totais
+      setRequisicoes(response.data.content || []);
+      setTotalElements(response.data.totalElements);
     } catch (error) {
       toast.error("Falha ao carregar as requisições pendentes.");
       console.error(error);
     } finally {
       setLoading(false);
     }
-  };
+    // MUDANÇA: O useCallback depende de 'page' e 'rowsPerPage'
+  }, [page, rowsPerPage]);
 
+  // MUDANÇA: O useEffect agora chama a versão do useCallback
   useEffect(() => {
     fetchRequisicoes();
-  }, []);
+  }, [fetchRequisicoes]);
 
-  // ✅ 3. FUNÇÕES PARA ABRIR E FECHAR O MODAL
+  // --- MUDANÇA: Handlers de Paginação ---
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Volta para a primeira página
+  };
+
+  // Funções do Modal (estão perfeitas)
   const handleAbrirModal = (id, acao) => {
     setModalState({ open: true, acao: acao, requisicaoId: id });
-    setMotivo(""); // Limpa o motivo anterior
+    setMotivo("");
   };
 
   const handleFecharModal = () => {
@@ -66,7 +88,6 @@ function RequisicoesPage() {
     setMotivo("");
   };
 
-  // ✅ 4. FUNÇÃO QUE CHAMA A API (QUANDO O ADMIN CONFIRMA)
   const handleConfirmarAcao = async () => {
     const { acao, requisicaoId } = modalState;
 
@@ -75,27 +96,30 @@ function RequisicoesPage() {
       return;
     }
 
-    // O body que o seu novo backend espera!
     const body = { motivo };
-    const url = `/requisicoes/${requisicaoId}/${acao}`; // ex: /requisicoes/1/aprovar
+    const url = `/requisicoes/${requisicaoId}/${acao}`;
 
-    setLoading(true); // Ativa o loading
+    setLoading(true);
     try {
-      // CHAMA A API NOVA!
       await api.put(url, body);
-
       toast.success(
         `Requisição ${
           acao === "aprovar" ? "aprovada" : "recusada"
         } com sucesso!`
       );
       handleFecharModal();
-      fetchRequisicoes(); // Atualiza a lista
+
+      // MUDANÇA: Após uma ação, checar se a página atual ficou vazia
+      if (requisicoes.length === 1 && page > 0) {
+        setPage(page - 1); // Volta para a página anterior
+      } else {
+        fetchRequisicoes(); // Apenas recarrega a página atual
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Falha ao processar ação.");
       console.error("Erro ao confirmar ação:", error);
     } finally {
-      setLoading(false); // Desativa o loading
+      setLoading(false);
     }
   };
 
@@ -123,6 +147,7 @@ function RequisicoesPage() {
             <TableContainer>
               <Table stickyHeader>
                 <TableHead>
+                  {/* ... O seu TableHead está perfeito ... */}
                   <TableRow>
                     <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>
@@ -144,6 +169,7 @@ function RequisicoesPage() {
                   {requisicoes.length > 0 ? (
                     requisicoes.map((req) => (
                       <TableRow hover key={req.id}>
+                        {/* ... O seu .map() está perfeito ... */}
                         <TableCell>{req.componenteNome}</TableCell>
                         <TableCell>{req.componenteCodigoPatrimonio}</TableCell>
                         <TableCell>{req.quantidade}</TableCell>
@@ -164,7 +190,6 @@ function RequisicoesPage() {
                               onClick={() =>
                                 handleAbrirModal(req.id, "aprovar")
                               }
-                              // 👇 CORRIGIDO AQUI (Bug 1)
                               disabled={loading}
                             >
                               Aprovar
@@ -176,7 +201,7 @@ function RequisicoesPage() {
                               onClick={() =>
                                 handleAbrirModal(req.id, "recusar")
                               }
-                              disabled={loading} // (Este já estava certo)
+                              disabled={loading}
                             >
                               Recusar
                             </Button>
@@ -194,11 +219,22 @@ function RequisicoesPage() {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* MUDANÇA: Adicionar o componente de Paginação */}
+            <TablePagination
+              component="div"
+              count={totalElements} // O total de itens que existem no DB
+              page={page} // A página atual
+              onPageChange={handleChangePage} // Função para mudar de página
+              rowsPerPage={rowsPerPage} // Quantos itens por página
+              onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar itens por página
+              rowsPerPageOptions={[5, 10, 25]}
+            />
           </Paper>
         )}
       </Container>
 
-      {/* O MODAL DE CONFIRMAÇÃO */}
+      {/* O seu Modal (está perfeito) */}
       <Dialog
         open={modalState.open}
         onClose={handleFecharModal}
@@ -209,6 +245,7 @@ function RequisicoesPage() {
           {modalState.acao === "aprovar" ? "Aprovar" : "Recusar"} Requisição
         </DialogTitle>
         <DialogContent>
+          {/* ... Conteúdo do modal ... */}
           <DialogContentText sx={{ mb: 2 }}>
             Por favor, insira uma justificativa (motivo) para esta ação. Este
             motivo será salvo no histórico de auditoria.
@@ -239,7 +276,6 @@ function RequisicoesPage() {
             onClick={handleConfirmarAcao}
             variant="contained"
             color={modalState.acao === "aprovar" ? "success" : "error"}
-            // 👇 CORRIGIDO AQUI (Bug 2)
             disabled={loading || !motivo}
           >
             {loading ? (
