@@ -1,7 +1,7 @@
-// Em src/components/ProfileMenu.jsx
-import { useState, useEffect } from "react";
+// Em src/components/ProfileMenu.jsx (VERSÃO CORRIGIDA E OTIMIZADA)
+import { useState } from "react"; // MUDANÇA: useEffect e api não são mais necessários
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+// MUDANÇA: 'api' não é mais necessário aqui
 import {
   Avatar,
   Box,
@@ -9,49 +9,60 @@ import {
   Menu,
   MenuItem,
   Typography,
-  Skeleton,
+  Skeleton, // O Skeleton ainda é útil
 } from "@mui/material";
 
-// URL base das fotos, igual à da UserManagementPage
+// URL base das fotos (está correto)
 const FOTOS_URL_BASE = "http://localhost:8080/user-photos/";
 
 function ProfileMenu() {
-  const [user, setUser] = useState(null); // Guarda os dados do usuário
-  const [anchorEl, setAnchorEl] = useState(null); // Controla o menu
+  // MUDANÇA: Lemos os dados do usuário DIRETAMENTE do localStorage
+  // Isso é muito mais rápido e evita chamadas de API desnecessárias
+  const [user, setUser] = useState(() => {
+    const data = localStorage.getItem("user-data");
+    try {
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error("Falha ao ler 'user-data' do localStorage", e);
+      return null;
+    }
+  });
+
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
-  // Busca os dados do usuário ("/api/users/me") quando o componente carrega
-  useEffect(() => {
-    api
-      .get("/users/me")
-      .then((response) => {
-        setUser(response.data);
-      })
-      .catch((error) => {
-        console.error("Falha ao buscar dados do usuário:", error);
-      });
-  }, []);
+  // MUDANÇA: O useEffect(api.get(...)) foi REMOVIDO.
 
-  // Funções do Menu
+  // Funções do Menu (estão corretas)
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  // Função de Logout
+  // MUDANÇA: Função de Logout CORRIGIDA
   const handleLogout = () => {
+    // 1. Remove AMBOS os itens do localStorage
     localStorage.removeItem("jwt-token");
+    localStorage.removeItem("user-data");
+    
+    // 2. Limpa o header da API (boa prática)
+    // (Precisamos importar o 'api' se formos fazer isso)
+    // api.defaults.headers.common["Authorization"] = null;
+
+    // 3. Navega e recarrega para limpar todo o estado do React
     navigate("/login");
+    window.location.reload(); 
   };
 
-  // Se ainda estiver carregando, mostra um esqueleto
+  // Se o 'user-data' não for encontrado (o que não deve acontecer
+  // se o usuário estiver logado), mostramos o Skeleton.
   if (!user) {
     return <Skeleton variant="circular" width={40} height={40} />;
   }
 
-  // Define a fonte da imagem do Avatar
+  // Define a fonte da imagem do Avatar (lógica correta)
   const avatarSrc = user.caminhoFotoPerfil
     ? `${FOTOS_URL_BASE}${user.caminhoFotoPerfil}`
-    : ""; // Deixa vazio se não houver foto
+    : ""; 
 
   return (
     <Box>
@@ -60,7 +71,7 @@ function ProfileMenu() {
           src={avatarSrc}
           sx={{ width: 40, height: 40, bgcolor: "primary.main" }}
         >
-          {/* Fallback: Mostra a primeira letra do nome se a foto falhar ou não existir */}
+          {/* Fallback (lógica correta) */}
           {user.nome ? user.nome[0].toUpperCase() : "?"}
         </Avatar>
       </IconButton>
@@ -69,7 +80,6 @@ function ProfileMenu() {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        // Posiciona o menu
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
@@ -79,6 +89,10 @@ function ProfileMenu() {
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {user.email}
+          </Typography>
+          {/* MUDANÇA: Mostra o domínio/empresa! */}
+          <Typography variant="caption" color="text.secondary">
+            Domínio: <strong>{user.dominio}</strong>
           </Typography>
         </Box>
         <MenuItem onClick={handleLogout}>Sair</MenuItem>

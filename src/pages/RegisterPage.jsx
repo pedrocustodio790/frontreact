@@ -1,5 +1,5 @@
-// Em src/pages/RegisterPage.jsx
-import { useState, useRef } from "react";
+// Em src/pages/RegisterPage.jsx (VERSÃO 100% CORRIGIDA)
+import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import api from "../services/api";
 
 import {
-  Avatar,
   Button,
   TextField,
   Link,
@@ -17,11 +16,14 @@ import {
   Typography,
   Container,
   Paper,
+  Stack,
+  CircularProgress,
 } from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
+// MUDANÇA: Schema atualizado com 'nome' e 'dominio' (nome correto)
 const schema = yup.object().shape({
-  nome: yup.string().required("O nome é obrigatório"),
+  dominio: yup.string().required("O domínio da empresa é obrigatório"),
+  nome: yup.string().required("O nome é obrigatório"), // <-- CAMPO ADICIONADO
   email: yup.string().email("Email inválido").required("O email é obrigatório"),
   senha: yup
     .string()
@@ -31,9 +33,7 @@ const schema = yup.object().shape({
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -41,42 +41,39 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
+    // MUDANÇA: Valores padrão atualizados
+    defaultValues: {
+      dominio: "", // <-- NOME CORRIGIDO
+      nome: "", // <-- CAMPO ADICIONADO
+      email: "",
+      senha: "",
+    },
   });
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const onSubmit = async (data) => {
-    // 1. Criar um objeto FormData para enviar dados e arquivo
-    const formData = new FormData();
-
-    // 2. Adicionar os dados do formulário
-    formData.append("nome", data.nome);
-    formData.append("email", data.email);
-    formData.append("senha", data.senha);
-
-    // 3. Adicionar o arquivo de imagem, se existir
-    if (imageFile) {
-      formData.append("fotoPerfil", imageFile);
-    }
+    // 'data' agora tem { dominio, nome, email, senha }
+    setLoading(true);
+    
+    // MUDANÇA: Criamos o payload final que o RegisterDTO espera
+    const payload = {
+      ...data,
+      role: "USER", // <-- CAMPO ADICIONADO (obrigatório pelo DTO)
+    };
 
     try {
-      await api.post("/auth/register", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Essencial para envio de arquivos
-        },
-      });
+      // Enviamos o payload completo
+      await api.post("/auth/register", payload);
 
       toast.success("Conta criada com sucesso! Faça o login.");
       navigate("/login");
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Erro ao criar conta.");
+      toast.error(
+        error.response?.data?.message ||
+          "Erro ao criar conta. O e-mail já pode estar em uso neste domínio."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +82,6 @@ export default function RegisterPage() {
       component="main"
       maxWidth="xs"
       sx={{
-        // <--- CORRIGIDO (Adicionado para centralizar)
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -95,122 +91,111 @@ export default function RegisterPage() {
       <Paper
         elevation={6}
         sx={{
-          // marginTop: 20, // <--- CORRIGIDO (REMOVIDO!)
           padding: 4,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          borderRadius: 2, // (bônus, pra ficar bonito igual o login)
+          borderRadius: 2,
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Criar Conta
+        <Typography component="h1" variant="h5" fontWeight="bold">
+          Criar Conta de Empresa
         </Typography>
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          sx={{ mt: 3, width: "100%" }} // <--- BÔNUS (garante 100% de largura)
+          sx={{ mt: 3, width: "100%" }}
         >
-          <Grid container spacing={2}>
-            <Grid
-              size={12} // <--- CORRIGIDO (de 13 para 12)
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Avatar
-                src={imagePreview}
-                sx={{ width: 90, height: 90, mb: 1 }}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleImageChange}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => fileInputRef.current.click()}
-              >
-                Escolher Foto
-              </Button>
-            </Grid>
+          <Stack spacing={2}>
+            {/* MUDANÇA: Campo 'dominio' (nome corrigido) */}
+            <Controller
+              name="dominio" // <-- NOME CORRIGIDO
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  required
+                  fullWidth
+                  label="Domínio da Empresa (ex: 'minhaempresa')"
+                  autoFocus
+                  error={!!errors.dominio} // <-- NOME CORRIGIDO
+                  helperText={
+                    errors.dominio?.message || // <-- NOME CORRIGIDO
+                    "Este será seu identificador único de login."
+                  }
+                />
+              )}
+            />
 
-            <Grid size={12}>
-              {/* <--- CORRIGIDO (Adicionado size) */}
-              <Controller
-                name="nome"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    required
-                    fullWidth
-                    label="Nome Completo"
-                    error={!!errors.nome}
-                    helperText={errors.nome?.message}
-                  />
-                )}
-              />
-            </Grid>
+            {/* MUDANÇA: Adicionado Controller para NOME */}
+            <Controller
+              name="nome"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  required
+                  fullWidth
+                  label="Seu Nome Completo"
+                  autoComplete="name"
+                  error={!!errors.nome}
+                  helperText={errors.nome?.message}
+                />
+              )}
+            />
 
-            <Grid size={12}>
-              <Controller
-                name="email"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    required
-                    fullWidth
-                    label="Endereço de Email"
-                    type="email"
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
-                  />
-                )}
-              />
-            </Grid>
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  required
+                  fullWidth
+                  label="Seu Endereço de Email"
+                  type="email"
+                  autoComplete="email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
+              )}
+            />
 
-            <Grid size={12}>
-              {/* <--- CORRIGIDO (Adicionado size) */}
-              <Controller
-                name="senha"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    required
-                    fullWidth
-                    label="Senha"
-                    type="password"
-                    error={!!errors.senha}
-                    helperText={errors.senha?.message}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
+            <Controller
+              name="senha"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  required
+                  fullWidth
+                  label="Senha"
+                  type="password"
+                  autoComplete="new-password"
+                  error={!!errors.senha}
+                  helperText={errors.senha?.message}
+                />
+              )}
+            />
+          </Stack>
+
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }} // (ajustei a margem mt)
+            disabled={loading}
+            sx={{ mt: 3, mb: 2, py: 1.5 }}
           >
-            Cadastrar
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Cadastrar"
+            )}
           </Button>
+
           <Grid container justifyContent="center">
-            <Grid>
+            <Grid item>
               <Link component={RouterLink} to="/login" variant="body2">
                 Já tem uma conta? Faça login
               </Link>
