@@ -1,49 +1,43 @@
-  import axios from 'axios';
+import axios from 'axios';
 
-  const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
-  });
+// 1. Lê a URL da variável de ambiente (definida no Render)
+//    Se não achar (quando você rodar local), usa o localhost.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-  // Seu interceptor de requisição (perfeito, sem alterações)
-  api.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem('jwt-token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
+const api = axios.create({
+  baseURL: API_URL, // 2. Usa a variável
+});
+
+// Seu interceptor de requisição (perfeito, sem alterações)
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('jwt-token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  );
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-  // --- SUGESTÃO: Adicionar Interceptor de Resposta ---
-  api.interceptors.response.use(
-    // 1. O que fazer com respostas de SUCESSO (status 2xx)
-    (response) => {
-      // Apenas retorna a resposta
-      return response;
-    },
-    // 2. O que fazer com respostas de ERRO
-    (error) => {
-      // Se o erro for 401 (Não Autorizado)
-      if (error.response && error.response.status === 401) {
-        // a. Limpe o token do localStorage
-        localStorage.removeItem('jwt-token');
-
-        // b. Redirecione o usuário para a página de login
-        //    (Evita que ele fique em uma tela que exige autenticação)
-        window.location.href = '/login'; 
-        
-        // Você também pode mostrar uma mensagem de "Sessão expirada".
-      }
-
-      // Para outros erros, apenas rejeita a promessa para que
-      // o bloco .catch() do seu componente possa lidar com eles.
-      return Promise.reject(error);
+// Seu interceptor de resposta (perfeito, sem alterações)
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Se o token expirar ou for inválido (Erro 401 ou 403)
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      localStorage.removeItem('jwt-token');
+      localStorage.removeItem('user-data'); // Limpa tudo!
+      
+      // Redireciona para o login
+      window.location.href = '/login'; 
     }
-  );
+    return Promise.reject(error);
+  }
+);
 
-
-  export default api;
+export default api;
