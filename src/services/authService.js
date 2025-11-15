@@ -1,45 +1,54 @@
-import axios from 'axios';
+// Em: src/services/authService.js (O CÓDIGO FINAL E CORRETO)
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+// (Não precisamos de jwt-decode aqui!)
 
-const api = axios.create({
-  baseURL: API_URL,
-});
+/**
+ * Verifica se o usuário está logado.
+ * (Verifica se o token E os dados do usuário existem)
+ */
+export const isAuthenticated = () => {
+  const token = localStorage.getItem("jwt-token");
+  const userData = localStorage.getItem("user-data");
+  
+  // Se qualquer um dos dois não existir, ele não está logado.
+  return token != null && userData != null;
+};
 
-// Interceptor de Requisição (Está 100% correto)
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt-token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+/**
+ * Verifica se o usuário logado é um ADMIN.
+ * (Lê o 'user-data' do localStorage)
+ * ESTA É A FUNÇÃO QUE O SIDEBAR PRECISA.
+ */
+export const isAdmin = () => {
+  try {
+    // 1. Pega os dados do usuário
+    const userDataString = localStorage.getItem("user-data");
+    
+    if (!userDataString) {
+      return false; // Não tem dados do usuário = não é admin
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+    
+    // 2. Converte o texto (JSON) de volta para um objeto
+    const userData = JSON.parse(userDataString); 
+    
+    // 3. Verifica o 'role' de dentro do objeto
+    return userData.role === "ADMIN"; 
 
-// Interceptor de Resposta (A CORREÇÃO ESTÁ AQUI)
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // Se o token expirar ou for inválido (Erro 401 ou 403)
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      
-      
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('jwt-token');
-        localStorage.removeItem('user-data');
-        
-        // Redireciona para o login
-        window.location.href = '/login'; 
-      }
-    }
-    return Promise.reject(error);
+  } catch (error) {
+    console.error("Erro ao verificar 'role' do usuário:", error);
+    return false; // Se der erro ao ler o JSON, não é admin
   }
-);
+};
 
-export default api;
+/**
+ * Pega o objeto do usuário logado (para o ProfileMenu)
+ */
+export const getLoggedUser = () => {
+    try {
+     const userDataString = localStorage.getItem("user-data");
+     return userDataString ? JSON.parse(userDataString) : null;
+   } catch (error) {
+     console.error("Erro ao ler dados do usuário:", error);
+     return null;
+   }
+}
