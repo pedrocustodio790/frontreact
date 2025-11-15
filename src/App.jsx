@@ -1,6 +1,6 @@
 // Em src/App.jsx
 import { Outlet, Navigate } from "react-router-dom";
-import Sidebar  from './components/Sidebar';
+import Sidebar from "./components/Sidebar"; // Seu componente Sidebar existente
 import { Box, AppBar, Toolbar, CssBaseline } from "@mui/material";
 import { isAuthenticated } from "./services/authService";
 import ProfileMenu from "./components/ProfileMenu"; // ✅ 1. Importe o novo menu
