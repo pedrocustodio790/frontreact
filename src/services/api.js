@@ -1,14 +1,12 @@
 import axios from 'axios';
 
-// 1. Lê a URL da variável de ambiente (definida no Render)
-//    Se não achar (quando você rodar local), usa o localhost.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 const api = axios.create({
-  baseURL: API_URL, // 2. Usa a variável
+  baseURL: API_URL,
 });
 
-// Seu interceptor de requisição (perfeito, sem alterações)
+// Interceptor de Requisição (Está 100% correto)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('jwt-token');
@@ -22,7 +20,7 @@ api.interceptors.request.use(
   }
 );
 
-// Seu interceptor de resposta (perfeito, sem alterações)
+// Interceptor de Resposta (A CORREÇÃO ESTÁ AQUI)
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -30,11 +28,16 @@ api.interceptors.response.use(
   (error) => {
     // Se o token expirar ou for inválido (Erro 401 ou 403)
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      localStorage.removeItem('jwt-token');
-      localStorage.removeItem('user-data'); // Limpa tudo!
       
-      // Redireciona para o login
-      window.location.href = '/login'; 
+      // --- ✅ A TRAVA ANTI-LOOP ---
+      // Só redireciona se NÓS NÃO ESTIVERMOS JÁ na página /login.
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('jwt-token');
+        localStorage.removeItem('user-data');
+        
+        // Redireciona para o login
+        window.location.href = '/login'; 
+      }
     }
     return Promise.reject(error);
   }
