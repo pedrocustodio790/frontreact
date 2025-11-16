@@ -34,7 +34,9 @@ import KeyIcon from "@mui/icons-material/Key";
 import ModalAddUser from "../components/modaladduser";
 import ModalResetPassword from "../components/ModalUserResetPassword";
 
-const FOTOS_URL_BASE = "http://localhost:8080/user-photos/";
+c// Pega a URL da API (ex: https://.../api) e remove o /api do final
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace('/api', '');
+const FOTOS_URL_BASE = `${API_BASE_URL}/user-photos/`; // (ex: https://.../user-photos/)
 
 function UserManagementPage() {
   const [users, setUsers] = useState([]); // MUDANÇA: Agora guarda só o 'content'
