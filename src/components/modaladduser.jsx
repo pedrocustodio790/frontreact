@@ -1,79 +1,97 @@
-import React, { useState } from "react";
+// Em: src/components/ModalAddUser.jsx (VERSÃO 100% CORRIGIDA)
+import { useEffect, useState } from "react";
 import api from "../services/api";
-import { toast } from "react-toastify"; // MUDANÇA: Usar toast para erros
+import { toast } from "react-toastify";
 
-// MUDANÇA: Imports do React Hook Form (como no seu LoginPage)
+// Imports do React Hook Form
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-// Imports de componentes do MUI
+// Imports do MUI
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   TextField,
-  Select,
-  MenuItem,
+  Box,
+  CircularProgress,
   FormControl,
   InputLabel,
-  // FormHelperText, // Não precisamos mais do error state
-  CircularProgress,
-  Box,
+  Select,
+  MenuItem,
 } from "@mui/material";
+// Importa o helper que JÁ TEMOS
+import { getLoggedUser } from "../services/authService"; 
 
-// MUDANÇA: Definir o "contrato" de validação
+// MUDANÇA: O Schema de validação agora INCLUI o 'nome'
 const schema = yup.object().shape({
+  nome: yup.string().required("O nome é obrigatório"), // <-- CAMPO ADICIONADO
   email: yup.string().email("Email inválido").required("O email é obrigatório"),
   senha: yup
     .string()
     .min(6, "A senha deve ter no mínimo 6 caracteres")
     .required("A senha é obrigatória"),
-  role: yup.string().required("O cargo é obrigatório"),
+  role: yup.string().required("A função é obrigatória"),
 });
 
 function ModalAddUser({ isVisible, onClose, onUserAdded }) {
-  // MUDANÇA: O 'loading' é o único estado manual que precisamos
   const [loading, setLoading] = useState(false);
 
-  // MUDANÇA: Configuração do React Hook Form
   const {
     control,
     handleSubmit,
-    reset, // Para limpar o formulário
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
+    // MUDANÇA: Valores padrão atualizados
     defaultValues: {
+      nome: "", // <-- CAMPO ADICIONADO
       email: "",
       senha: "",
-      role: "USER", // Valor padrão
+      role: "USER",
     },
   });
 
-  // MUDANÇA: handleClose agora limpa o formulário usando o hook
-  const handleClose = () => {
-    onClose();
-  };
+  // Limpa o formulário quando o modal é fechado (Correto)
+  useEffect(() => {
+    if (!isVisible) {
+      reset();
+    }
+  }, [isVisible, reset]);
 
-  // MUDANÇA: O handleSubmit agora é o 'onSubmit' do hook
+  // MUDANÇA: O Submit agora envia o payload COMPLETO
   const onSubmit = async (data) => {
-    // 'data' já contém { email, senha, role }
+    // 'data' tem {nome, email, senha, role}
     setLoading(true);
 
+    // 1. Pega o usuário Admin logado (para achar o domínio)
+    const adminUser = getLoggedUser();
+    if (!adminUser) {
+        toast.error("Erro fatal: Admin não encontrado. Faça login novamente.");
+        setLoading(false);
+        return;
+    }
+
+    // 2. Monta o payload final que o RegisterDTO (Back-end) espera
+    const payload = {
+      ...data,
+      dominio: adminUser.dominio, // <-- ADICIONA O DOMÍNIO DO ADMIN
+    };
+
     try {
-      await api.post("/users", data); // A 'data' do hook é enviada direto
-      toast.success("Novo usuário criado com sucesso!"); // MUDANÇA
+      // 3. Envia o payload completo
+      await api.post("/api/users", payload); 
+      toast.success("Novo usuário criado com sucesso!");
       onUserAdded();
-      handleClose();
-    } catch (err) {
-      console.error("Erro ao criar utilizador:", err);
-      // MUDANÇA: Usar o toast para erros, em vez do 'error' state
+      onClose();
+    } catch (error) {
+      console.error("Erro ao criar usuário:", error);
       toast.error(
-        err.response?.data?.message || "Ocorreu um erro ao criar o utilizador."
+        error.response?.data?.message || "Falha ao criar usuário."
       );
     } finally {
       setLoading(false);
@@ -81,46 +99,47 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
   };
 
   return (
-    <Dialog
-      open={isVisible}
-      onClose={handleClose}
-      // MUDANÇA: Resetar o formulário DEPOIS que a animação de saída terminar
-      TransitionProps={{ onExited: () => reset() }}
-    >
-      <DialogTitle fontWeight="bold">Adicionar Novo Utilizador</DialogTitle>
+    <Dialog open={isVisible} onClose={onClose}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+        <DialogTitle fontWeight="bold">Adicionar Novo Usuário</DialogTitle>
 
-      <DialogContent>
-        <DialogContentText sx={{ mb: 2 }}>
-          Preencha os dados abaixo para criar uma nova conta de utilizador.
-        </DialogContentText>
-
-        {/* MUDANÇA: O 'onSubmit' do hook é ativado aqui */}
-        <Box
-          component="form"
-          id="add-user-form"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          {/* MUDANÇA: Usar o <Controller> para o Email */}
+        <DialogContent>
+          {/* MUDANÇA: Adicionado o Controller para NOME */}
+          <Controller
+            name="nome"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                autoFocus // Foca no nome
+                required
+                margin="dense"
+                label="Nome Completo"
+                type="text"
+                fullWidth
+                variant="outlined"
+                error={!!errors.nome}
+                helperText={errors.nome?.message}
+              />
+            )}
+          />
           <Controller
             name="email"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
-                autoFocus
                 required
                 margin="dense"
-                label="Endereço de E-mail"
+                label="Email"
                 type="email"
                 fullWidth
                 variant="outlined"
-                error={!!errors.email} // Validação do Yup
-                helperText={errors.email?.message} // Validação do Yup
+                error={!!errors.email}
+                helperText={errors.email?.message}
               />
             )}
           />
-
-          {/* MUDANÇA: Usar o <Controller> para a Senha */}
           <Controller
             name="senha"
             control={control}
@@ -133,46 +152,40 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
                 type="password"
                 fullWidth
                 variant="outlined"
-                error={!!errors.senha} // Validação do Yup
-                helperText={errors.senha?.message} // Validação do Yup
+                error={!!errors.senha}
+                helperText={errors.senha?.message}
               />
             )}
           />
-
-          {/* MUDANÇA: Usar o <Controller> para o Cargo (Role) */}
           <Controller
             name="role"
             control={control}
             render={({ field }) => (
-              <FormControl
-                fullWidth
-                margin="dense"
-                required
-                error={!!errors.role} // Validação do Yup
-              >
-                <InputLabel id="role-select-label">Cargo</InputLabel>
-                <Select {...field} labelId="role-select-label" label="Cargo">
-                  <MenuItem value="USER">Utilizador Padrão</MenuItem>
-                  <MenuItem value="ADMIN">Administrador</MenuItem>
+              <FormControl fullWidth required margin="dense">
+                <InputLabel id="role-select-label">Função</InputLabel>
+                <Select
+                  {...field}
+                  labelId="role-select-label"
+                  label="Função"
+                  error={!!errors.role}
+                >
+                  <MenuItem value="USER">User (Usuário)</MenuItem>
+                  <MenuItem value="ADMIN">Admin (Administrador)</MenuItem>
                 </Select>
-                {/* O helperText do Yup vai aparecer aqui se houver erro */}
               </FormControl>
             )}
           />
-        </Box>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions sx={{ p: "0 24px 24px 24px" }}>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button
-          type="submit"
-          form="add-user-form"
-          variant="contained"
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={24} /> : "Criar Utilizador"}
-        </Button>
-      </DialogActions>
+        <DialogActions sx={{ p: "0 24px 16px" }}>
+          <Button onClick={onClose} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? <CircularProgress size={24} /> : "Criar Usuário"}
+          </Button>
+        </DialogActions>
+      </Box>
     </Dialog>
   );
 }
