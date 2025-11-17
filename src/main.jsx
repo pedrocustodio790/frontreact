@@ -19,6 +19,7 @@ import PedidosPage from "./pages/Pedidopages.jsx";
 import AdminRoute from "./components/Adminroute.jsx";
 import { ThemeProvider } from "./context/themecontext.jsx";
 import "./index.css";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
