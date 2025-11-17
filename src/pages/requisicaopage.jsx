@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"; // MUDANÇA: Importar useCallback
+import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
 import {
@@ -21,36 +21,38 @@ import {
   DialogContentText,
   DialogTitle,
   TextField,
-  TablePagination, // MUDANÇA: Importar Paginação
+  TablePagination, // ✅ Componente essencial
+  Chip,
 } from "@mui/material";
 
 function RequisicoesPage() {
+  // Estados de Dados
   const [requisicoes, setRequisicoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Estados do Modal (estão perfeitos)
+  // Estados de Paginação (Correção Principal)
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+
+  // Estados do Modal de Aprovação/Recusa
   const [motivo, setMotivo] = useState("");
   const [modalState, setModalState] = useState({
     open: false,
-    acao: null,
+    acao: null, // "aprovar" ou "recusar"
     requisicaoId: null,
   });
 
-  // --- MUDANÇA: Estados de Paginação ---
-  const [page, setPage] = useState(0); // A página atual (começa em 0)
-  const [rowsPerPage, setRowsPerPage] = useState(10); // Itens por página
-  const [totalElements, setTotalElements] = useState(0); // Total de itens no DB
-
-  // MUDANÇA: fetchRequisicoes agora usa useCallback e envia parâmetros
+  // --- BUSCAR REQUISIÇÕES PENDENTES ---
   const fetchRequisicoes = useCallback(async () => {
     setLoading(true);
     try {
-      // MUDANÇA: Envia os parâmetros de paginação e ordena por data
+      // ✅ Envia page e size para a API
       const response = await api.get(
         `/requisicoes/pendentes?page=${page}&size=${rowsPerPage}&sort=dataRequisicao,asc`
       );
 
-      // MUDANÇA: Armazena o 'content' e os totais
+      // ✅ Lê o objeto Page corretamente
       setRequisicoes(response.data.content || []);
       setTotalElements(response.data.totalElements);
     } catch (error) {
@@ -59,28 +61,26 @@ function RequisicoesPage() {
     } finally {
       setLoading(false);
     }
-    // MUDANÇA: O useCallback depende de 'page' e 'rowsPerPage'
   }, [page, rowsPerPage]);
 
-  // MUDANÇA: O useEffect agora chama a versão do useCallback
   useEffect(() => {
     fetchRequisicoes();
   }, [fetchRequisicoes]);
 
-  // --- MUDANÇA: Handlers de Paginação ---
+  // --- HANDLERS DE PAGINAÇÃO ---
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Volta para a primeira página
+    setPage(0);
   };
 
-  // Funções do Modal (estão perfeitas)
+  // --- MODAL E AÇÕES ---
   const handleAbrirModal = (id, acao) => {
     setModalState({ open: true, acao: acao, requisicaoId: id });
-    setMotivo("");
+    setMotivo(""); // Limpa o motivo anterior
   };
 
   const handleFecharModal = () => {
@@ -91,29 +91,33 @@ function RequisicoesPage() {
   const handleConfirmarAcao = async () => {
     const { acao, requisicaoId } = modalState;
 
-    if (!motivo) {
-      toast.error("O motivo da ação é obrigatório.");
+    if (!motivo.trim()) {
+      toast.warning("Por favor, digite um motivo/justificativa.");
       return;
     }
 
-    const body = { motivo };
     const url = `/requisicoes/${requisicaoId}/${acao}`;
 
+    // Loading local do botão
+    // (opcional, mas aqui usamos o loading geral para simplificar)
     setLoading(true);
+
     try {
-      await api.put(url, body);
+      await api.put(url, { motivo });
+
       toast.success(
         `Requisição ${
           acao === "aprovar" ? "aprovada" : "recusada"
         } com sucesso!`
       );
+
       handleFecharModal();
 
-      // MUDANÇA: Após uma ação, checar se a página atual ficou vazia
+      // Lógica inteligente: Se aprovou o último item da página, volta uma página
       if (requisicoes.length === 1 && page > 0) {
-        setPage(page - 1); // Volta para a página anterior
+        setPage(page - 1);
       } else {
-        fetchRequisicoes(); // Apenas recarrega a página atual
+        fetchRequisicoes();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Falha ao processar ação.");
@@ -126,135 +130,138 @@ function RequisicoesPage() {
   return (
     <Box
       component="main"
-      sx={{ flexGrow: 1, p: 3, backgroundColor: "background.default" }}
+      sx={{
+        flexGrow: 1,
+        p: 3,
+        bgcolor: "background.default",
+        minHeight: "100vh",
+      }}
     >
       <Container maxWidth="lg">
-        <Typography
-          variant="h4"
-          component="h1"
-          fontWeight="bold"
-          sx={{ mb: 4 }}
-        >
-          Requisições Pendentes
+        <Typography variant="h4" fontWeight="bold" sx={{ mb: 4 }}>
+          Aprovações Pendentes (Estoque)
         </Typography>
 
-        {loading && requisicoes.length === 0 ? (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
-            <TableContainer>
-              <Table stickyHeader>
-                <TableHead>
-                  {/* ... O seu TableHead está perfeito ... */}
+        <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
+          <TableContainer>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    Item Solicitado
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Qtd.</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Solicitante</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
+                    Ações
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
                   <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Patrimônio
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Qtd. Pedida
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>
-                      Solicitante
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
-                      Ações
+                    <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                      <CircularProgress />
                     </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {requisicoes.length > 0 ? (
-                    requisicoes.map((req) => (
-                      <TableRow hover key={req.id}>
-                        {/* ... O seu .map() está perfeito ... */}
-                        <TableCell>{req.componenteNome}</TableCell>
-                        <TableCell>{req.componenteCodigoPatrimonio}</TableCell>
-                        <TableCell>{req.quantidade}</TableCell>
-                        <TableCell>{req.usuarioNome}</TableCell>
-                        <TableCell>
-                          {new Date(req.dataRequisicao).toLocaleString("pt-BR")}
-                        </TableCell>
-                        <TableCell>
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            justifyContent="center"
-                          >
-                            <Button
-                              variant="contained"
-                              size="small"
-                              color="success"
-                              onClick={() =>
-                                handleAbrirModal(req.id, "aprovar")
-                              }
-                              disabled={loading}
-                            >
-                              Aprovar
-                            </Button>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              color="error"
-                              onClick={() =>
-                                handleAbrirModal(req.id, "recusar")
-                              }
-                              disabled={loading}
-                            >
-                              Recusar
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">
+                ) : requisicoes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                      <Typography color="text.secondary">
                         Nenhuma requisição pendente.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  requisicoes.map((req) => (
+                    <TableRow hover key={req.id}>
+                      <TableCell>{req.componenteNome}</TableCell>
+                      <TableCell>
+                        {req.componenteCodigoPatrimonio || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={req.quantidade} size="small" />
+                      </TableCell>
+                      <TableCell>{req.usuarioNome}</TableCell>
+                      <TableCell>
+                        {new Date(req.dataRequisicao).toLocaleDateString(
+                          "pt-BR"
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="center"
+                        >
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="success"
+                            onClick={() => handleAbrirModal(req.id, "aprovar")}
+                          >
+                            Aprovar
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            onClick={() => handleAbrirModal(req.id, "recusar")}
+                          >
+                            Recusar
+                          </Button>
+                        </Stack>
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-            {/* MUDANÇA: Adicionar o componente de Paginação */}
-            <TablePagination
-              component="div"
-              count={totalElements} // O total de itens que existem no DB
-              page={page} // A página atual
-              onPageChange={handleChangePage} // Função para mudar de página
-              rowsPerPage={rowsPerPage} // Quantos itens por página
-              onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar itens por página
-              rowsPerPageOptions={[5, 10, 25]}
-            />
-          </Paper>
-        )}
+          {/* ✅ COMPONENTE DE PAGINAÇÃO */}
+          <TablePagination
+            component="div"
+            count={totalElements}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            labelRowsPerPage="Linhas:"
+          />
+        </Paper>
       </Container>
 
-      {/* O seu Modal (está perfeito) */}
+      {/* --- MODAL DE CONFIRMAÇÃO --- */}
       <Dialog
         open={modalState.open}
         onClose={handleFecharModal}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>
-          {modalState.acao === "aprovar" ? "Aprovar" : "Recusar"} Requisição
+        <DialogTitle
+          sx={{
+            fontWeight: "bold",
+            color:
+              modalState.acao === "aprovar" ? "success.main" : "error.main",
+          }}
+        >
+          {modalState.acao === "aprovar"
+            ? "Confirmar Aprovação"
+            : "Confirmar Recusa"}
         </DialogTitle>
         <DialogContent>
-          {/* ... Conteúdo do modal ... */}
           <DialogContentText sx={{ mb: 2 }}>
-            Por favor, insira uma justificativa (motivo) para esta ação. Este
-            motivo será salvo no histórico de auditoria.
+            Por favor, insira um motivo ou observação para esta ação. Isso
+            ficará salvo no histórico.
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
-            id="motivo"
-            label="Motivo da Ação"
+            label="Motivo / Observação"
             type="text"
             fullWidth
             variant="outlined"
@@ -262,29 +269,24 @@ function RequisicoesPage() {
             onChange={(e) => setMotivo(e.target.value)}
             multiline
             rows={3}
+            placeholder={
+              modalState.acao === "aprovar"
+                ? "Ex: Retirada autorizada."
+                : "Ex: Estoque reservado para outro projeto."
+            }
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button
-            onClick={handleFecharModal}
-            color="secondary"
-            disabled={loading}
-          >
+          <Button onClick={handleFecharModal} color="inherit">
             Cancelar
           </Button>
           <Button
             onClick={handleConfirmarAcao}
             variant="contained"
             color={modalState.acao === "aprovar" ? "success" : "error"}
-            disabled={loading || !motivo}
+            disabled={!motivo.trim()} // Obriga a digitar algo
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              `Confirmar ${
-                modalState.acao === "aprovar" ? "Aprovação" : "Recusa"
-              }`
-            )}
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>

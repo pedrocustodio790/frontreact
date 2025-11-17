@@ -4,8 +4,6 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Imports das Páginas
 import App from "./App.jsx";
 import LoginPage from "./pages/loginpage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -16,13 +14,8 @@ import ReposicaoPage from "./pages/reposicaopage.jsx";
 import ConfiguracoesPage from "./pages/configuracaopages.jsx";
 import AjudaPage from "./pages/ajudapage.jsx";
 import UserManagementPage from "./pages/UserManagementpage.jsx";
-// ✅ REMOVA O IMPORT DA PÁGINA ANTIGA
-// import RequisicoesPage from './pages/RequisicoesPage.jsx';
-// ✅ ADICIONE AS DUAS NOVAS PÁGINAS
 import AprovacoesPage from "./pages/Aprovacaopages.jsx";
 import PedidosPage from "./pages/Pedidopages.jsx";
-
-// Imports de Componentes e Contexto
 import AdminRoute from "./components/Adminroute.jsx";
 import { ThemeProvider } from "./context/themecontext.jsx";
 import "./index.css";
@@ -53,6 +46,7 @@ const router = createBrowserRouter([
           { path: "/aprovacoes", element: <AprovacoesPage /> },
         ],
       },
+      { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },

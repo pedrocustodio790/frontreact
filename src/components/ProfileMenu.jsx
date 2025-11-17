@@ -1,7 +1,6 @@
-// Em src/components/ProfileMenu.jsx (VERSÃO CORRIGIDA E OTIMIZADA)
-import { useState } from "react"; // MUDANÇA: useEffect e api não são mais necessários
+// Em src/components/ProfileMenu.jsx (VERSÃO FINAL CORRIGIDA)
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// MUDANÇA: 'api' não é mais necessário aqui
 import {
   Avatar,
   Box,
@@ -9,16 +8,19 @@ import {
   Menu,
   MenuItem,
   Typography,
-  Skeleton, // O Skeleton ainda é útil
+  Skeleton,
 } from "@mui/material";
 
-// URL base das fotos (está correto)
-const FOTOS_URL_BASE = "http://localhost:8080/user-photos/";
+// ✅ CORREÇÃO: Usa a URL do Back-end (Render) em vez de localhost
+// Pega a URL da API (ex: https://.../api) e remove o /api do final para achar a pasta de fotos
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+).replace("/api", "");
+const FOTOS_URL_BASE = `${API_BASE_URL}/user-photos/`;
 
 function ProfileMenu() {
-  // MUDANÇA: Lemos os dados do usuário DIRETAMENTE do localStorage
-  // Isso é muito mais rápido e evita chamadas de API desnecessárias
-  const [user, setUser] = useState(() => {
+  // Lê os dados do localStorage (Rápido e sem API)
+  const [user] = useState(() => {
     const data = localStorage.getItem("user-data");
     try {
       return data ? JSON.parse(data) : null;
@@ -32,37 +34,24 @@ function ProfileMenu() {
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
-  // MUDANÇA: O useEffect(api.get(...)) foi REMOVIDO.
-
-  // Funções do Menu (estão corretas)
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  // MUDANÇA: Função de Logout CORRIGIDA
   const handleLogout = () => {
-    // 1. Remove AMBOS os itens do localStorage
     localStorage.removeItem("jwt-token");
     localStorage.removeItem("user-data");
-    
-    // 2. Limpa o header da API (boa prática)
-    // (Precisamos importar o 'api' se formos fazer isso)
-    // api.defaults.headers.common["Authorization"] = null;
-
-    // 3. Navega e recarrega para limpar todo o estado do React
     navigate("/login");
-    window.location.reload(); 
+    window.location.reload();
   };
 
-  // Se o 'user-data' não for encontrado (o que não deve acontecer
-  // se o usuário estiver logado), mostramos o Skeleton.
   if (!user) {
     return <Skeleton variant="circular" width={40} height={40} />;
   }
 
-  // Define a fonte da imagem do Avatar (lógica correta)
+  // Define a fonte da imagem (agora com a URL correta do Render)
   const avatarSrc = user.caminhoFotoPerfil
     ? `${FOTOS_URL_BASE}${user.caminhoFotoPerfil}`
-    : ""; 
+    : "";
 
   return (
     <Box>
@@ -71,7 +60,6 @@ function ProfileMenu() {
           src={avatarSrc}
           sx={{ width: 40, height: 40, bgcolor: "primary.main" }}
         >
-          {/* Fallback (lógica correta) */}
           {user.nome ? user.nome[0].toUpperCase() : "?"}
         </Avatar>
       </IconButton>
@@ -90,7 +78,6 @@ function ProfileMenu() {
           <Typography variant="body2" color="text.secondary">
             {user.email}
           </Typography>
-          {/* MUDANÇA: Mostra o domínio/empresa! */}
           <Typography variant="caption" color="text.secondary">
             Domínio: <strong>{user.dominio}</strong>
           </Typography>
