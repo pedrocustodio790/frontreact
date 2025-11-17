@@ -1,7 +1,11 @@
 // Em: src/main.jsx
 import React from "react"; // Import React
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import App from "./App.jsx";
@@ -19,7 +23,6 @@ import PedidosPage from "./pages/Pedidopages.jsx";
 import AdminRoute from "./components/Adminroute.jsx";
 import { ThemeProvider } from "./context/themecontext.jsx";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
