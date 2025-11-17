@@ -78,7 +78,7 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
     };
 
     try {
-      await api.post("/api/users", payload);
+      await api.post("/users", payload);
       toast.success("Usuário criado com sucesso!");
       onUserAdded();
       onClose();
