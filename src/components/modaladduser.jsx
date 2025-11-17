@@ -1,4 +1,3 @@
-// Em: src/components/ModalAddUser.jsx (VERSÃO 100% CORRIGIDA)
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
@@ -23,18 +22,19 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-// Importa o helper que JÁ TEMOS
-import { getLoggedUser } from "../services/authService"; 
 
-// MUDANÇA: O Schema de validação agora INCLUI o 'nome'
+// IMPORTANTE: Importa o helper para pegar o domínio do admin
+import { getLoggedUser } from "../services/authService";
+
+// Schema de validação (Agora com NOME)
 const schema = yup.object().shape({
-  nome: yup.string().required("O nome é obrigatório"), // <-- CAMPO ADICIONADO
+  nome: yup.string().required("O nome é obrigatório"),
   email: yup.string().email("Email inválido").required("O email é obrigatório"),
   senha: yup
     .string()
-    .min(6, "A senha deve ter no mínimo 6 caracteres")
-    .required("A senha é obrigatória"),
-  role: yup.string().required("A função é obrigatória"),
+    .min(6, "Mínimo 6 caracteres")
+    .required("Senha obrigatória"),
+  role: yup.string().required("Função obrigatória"),
 });
 
 function ModalAddUser({ isVisible, onClose, onUserAdded }) {
@@ -47,52 +47,44 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
-    // MUDANÇA: Valores padrão atualizados
     defaultValues: {
-      nome: "", // <-- CAMPO ADICIONADO
+      nome: "",
       email: "",
       senha: "",
       role: "USER",
     },
   });
 
-  // Limpa o formulário quando o modal é fechado (Correto)
   useEffect(() => {
-    if (!isVisible) {
-      reset();
-    }
+    if (!isVisible) reset();
   }, [isVisible, reset]);
 
-  // MUDANÇA: O Submit agora envia o payload COMPLETO
   const onSubmit = async (data) => {
-    // 'data' tem {nome, email, senha, role}
     setLoading(true);
 
-    // 1. Pega o usuário Admin logado (para achar o domínio)
+    // 1. PEGA O USUÁRIO ADMIN LOGADO
     const adminUser = getLoggedUser();
-    if (!adminUser) {
-        toast.error("Erro fatal: Admin não encontrado. Faça login novamente.");
-        setLoading(false);
-        return;
+
+    if (!adminUser || !adminUser.dominio) {
+      toast.error("Erro: Não foi possível identificar o domínio da empresa.");
+      setLoading(false);
+      return;
     }
 
-    // 2. Monta o payload final que o RegisterDTO (Back-end) espera
+    // 2. CRIA O PAYLOAD COM O DOMÍNIO
     const payload = {
       ...data,
-      dominio: adminUser.dominio, // <-- ADICIONA O DOMÍNIO DO ADMIN
+      dominio: adminUser.dominio, // <-- AQUI ESTÁ A CORREÇÃO MÁGICA
     };
 
     try {
-      // 3. Envia o payload completo
-      await api.post("/api/users", payload); 
-      toast.success("Novo usuário criado com sucesso!");
+      await api.post("/api/users", payload);
+      toast.success("Usuário criado com sucesso!");
       onUserAdded();
       onClose();
     } catch (error) {
       console.error("Erro ao criar usuário:", error);
-      toast.error(
-        error.response?.data?.message || "Falha ao criar usuário."
-      );
+      toast.error(error.response?.data?.message || "Falha ao criar usuário.");
     } finally {
       setLoading(false);
     }
@@ -102,27 +94,26 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
     <Dialog open={isVisible} onClose={onClose}>
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle fontWeight="bold">Adicionar Novo Usuário</DialogTitle>
-
         <DialogContent>
-          {/* MUDANÇA: Adicionado o Controller para NOME */}
+          {/* Campo NOME (Novo) */}
           <Controller
             name="nome"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
-                autoFocus // Foca no nome
+                autoFocus
                 required
                 margin="dense"
                 label="Nome Completo"
-                type="text"
                 fullWidth
-                variant="outlined"
                 error={!!errors.nome}
                 helperText={errors.nome?.message}
               />
             )}
           />
+
+          {/* Campo EMAIL */}
           <Controller
             name="email"
             control={control}
@@ -134,12 +125,13 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
                 label="Email"
                 type="email"
                 fullWidth
-                variant="outlined"
                 error={!!errors.email}
                 helperText={errors.email?.message}
               />
             )}
           />
+
+          {/* Campo SENHA */}
           <Controller
             name="senha"
             control={control}
@@ -151,38 +143,38 @@ function ModalAddUser({ isVisible, onClose, onUserAdded }) {
                 label="Senha Provisória"
                 type="password"
                 fullWidth
-                variant="outlined"
                 error={!!errors.senha}
                 helperText={errors.senha?.message}
               />
             )}
           />
+
+          {/* Campo ROLE */}
           <Controller
             name="role"
             control={control}
             render={({ field }) => (
               <FormControl fullWidth required margin="dense">
-                <InputLabel id="role-select-label">Função</InputLabel>
+                <InputLabel id="role-label">Função</InputLabel>
                 <Select
                   {...field}
-                  labelId="role-select-label"
+                  labelId="role-label"
                   label="Função"
                   error={!!errors.role}
                 >
-                  <MenuItem value="USER">User (Usuário)</MenuItem>
+                  <MenuItem value="USER">User (Usuário Padrão)</MenuItem>
                   <MenuItem value="ADMIN">Admin (Administrador)</MenuItem>
                 </Select>
               </FormControl>
             )}
           />
         </DialogContent>
-
-        <DialogActions sx={{ p: "0 24px 16px" }}>
+        <DialogActions sx={{ p: 2 }}>
           <Button onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : "Criar Usuário"}
+            {loading ? <CircularProgress size={24} /> : "Criar"}
           </Button>
         </DialogActions>
       </Box>

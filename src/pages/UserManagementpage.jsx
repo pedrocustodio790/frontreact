@@ -95,7 +95,7 @@ function UserManagementPage() {
     try {
       await api.put(`/users/${userId}/role`, { role: newRole });
       toast.success("Função do usuário atualizada!");
-      // O 'setUsers' aqui está ok, pois só atualiza a lista local
+     
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === userId ? { ...user, role: newRole } : user
@@ -110,12 +110,12 @@ function UserManagementPage() {
   // --- MUDANÇA: Handlers de Paginação ---
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage); // O MUI já manda o número da nova página (0, 1, 2...)
+    setPage(newPage); 
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10)); // Pega o novo valor (10, 25, 50)
-    setPage(0); // Volta para a primeira página
+    setRowsPerPage(parseInt(event.target.value, 10)); 
+    setPage(0);
   };
 
   // Bloco de "Loading" (está correto)

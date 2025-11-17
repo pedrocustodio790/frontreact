@@ -1,171 +1,193 @@
-// Em: src/pages/DashboardPage.jsx (VERSÃO PROFISSIONAL)
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { Link as RouterLink } from "react-router-dom"; // Para o link de "ver todos"
 
 // Imports do MUI
 import {
   Box,
-  CircularProgress,
   Container,
-  Grid,
+  Grid, // Usando Grid v5 (item/container) para garantir compatibilidade
+  Paper,
   Typography,
   Button,
-  Paper,
+  List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Divider,
+  Skeleton,
 } from "@mui/material";
 
-// Imports de Ícones
+// Ícones
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import AssignmentIcon from "@mui/icons-material/Assignment"; // Para Requisições
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart"; // Para Pedidos
-import InventoryIcon from "@mui/icons-material/Inventory"; // Para Itens
 
-// Imports dos seus Componentes de Dashboard
+// Imports do Recharts (Gráficos Bonitos)
+import {
+  ComposedChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+// Seus Componentes
 import KpiCard from "../components/kpicard";
-import ActionList from "../components/actionList";
-import CategoryChart from "../components/categoriachart"; // O gráfico de pizza!
 
 function DashboardPage() {
-  // Estados separados para cada parte do dashboard
-  const [kpis, setKpis] = useState(null);
-  const [itensEstoqueBaixo, setItensEstoqueBaixo] = useState([]);
-  const [loadingKpis, setLoadingKpis] = useState(true);
-  const [loadingEstoqueBaixo, setLoadingEstoqueBaixo] = useState(true);
+  // Estados para armazenar os dados que vêm do Back-end
+  const [kpis, setKpis] = useState({
+    totalItens: 0,
+    totalUnidades: 0,
+    itensEmFalta: 0,
+  });
+  const [statsCategorias, setStatsCategorias] = useState([]); // Para o gráfico
+  const [estoqueBaixo, setEstoqueBaixo] = useState([]); // Para a lista
+  const [loading, setLoading] = useState(true);
 
-  // Busca os 4 cards (KPIs)
+  // Função que carrega tudo
   useEffect(() => {
-    const fetchKpis = async () => {
+    const fetchData = async () => {
       try {
-        setLoadingKpis(true);
-        // 1. CHAMA A NOVA API DE KPIs
-        const response = await api.get("/dashboard/kpis");
-        setKpis(response.data);
+        // Chamamos as 3 rotas otimizadas do Back-end em paralelo
+        const [resKpis, resStats, resBaixo] = await Promise.all([
+          api.get("/dashboard/kpis"),
+          api.get("/dashboard/stats-categorias"),
+          api.get("/dashboard/estoque-baixo"),
+        ]);
+
+        setKpis(resKpis.data);
+        setStatsCategorias(resStats.data);
+        setEstoqueBaixo(resBaixo.data);
       } catch (error) {
-        toast.error("Erro ao carregar indicadores.");
-        console.error("Erro KPIs:", error);
+        console.error("Erro ao carregar dashboard:", error);
+        // Se der erro (ex: cancelado), não faz nada ou avisa discretamente
       } finally {
-        setLoadingKpis(false);
+        setLoading(false);
       }
     };
-    fetchKpis();
+
+    fetchData();
   }, []);
 
-  // Busca a lista de itens com estoque baixo
-  useEffect(() => {
-    const fetchEstoqueBaixo = async () => {
-      try {
-        setLoadingEstoqueBaixo(true);
-        // 2. CHAMA A NOVA API DE ESTOQUE BAIXO
-        const response = await api.get("/dashboard/estoque-baixo");
-        // Pega apenas os 5 primeiros para a lista
-        setItensEstoqueBaixo(response.data.slice(0, 5));
-      } catch (error) {
-        toast.error("Erro ao carregar itens com estoque baixo.");
-        console.error("Erro Estoque Baixo:", error);
-      } finally {
-        setLoadingEstoqueBaixo(false);
-      }
-    };
-    fetchEstoqueBaixo();
-  }, []);
-  
-  // (Removemos o 'useMemo' e o 'handleGeneratePdf' daqui)
-  // (O 'handleGeneratePdf' deve ficar na 'ComponentesPage.jsx', junto da tabela principal)
+  // Função simples de PDF (Imprimir tela)
+  const handleGeneratePdf = () => {
+    window.print();
+  };
 
-  // --- Renderização ---
+  if (loading) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Skeleton variant="rectangular" height={140} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Skeleton variant="rectangular" height={140} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Skeleton variant="rectangular" height={140} />
+          </Grid>
+        </Grid>
+      </Container>
+    );
+  }
+
   return (
     <Box
       component="main"
       sx={{
         flexGrow: 1,
-        p: 3,
+        py: 3,
         backgroundColor: "background.default",
         minHeight: "100vh",
       }}
     >
       <Container maxWidth="xl">
-        <Typography variant="h4" component="h1" fontWeight="bold" mb={4}>
-          Dashboard
-        </Typography>
+        {/* Cabeçalho com Botão PDF */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
+          <Typography variant="h4" fontWeight="bold">
+            Dashboard
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={handleGeneratePdf}
+          >
+            Gerar Relatório
+          </Button>
+        </Box>
 
-        {/* --- 1. LINHA DOS KPIs (CARDS) --- */}
-        <Grid container spacing={3} mb={3}>
-          {loadingKpis ? (
-            <Grid item xs={12} sx={{ textAlign: "center" }}>
-              <CircularProgress />
-            </Grid>
-          ) : (
-            <>
-              <Grid item xs={12} sm={6} md={3}>
-                <KpiCard
-                  title="Itens c/ Estoque Baixo"
-                  value={kpis?.itensComEstoqueBaixo || 0}
-                  icon={<WarningAmberIcon />}
-                  color="warning.main"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <KpiCard
-                  title="Requisições Pendentes"
-                  value={kpis?.requisicoesPendentes || 0}
-                  icon={<AssignmentIcon />}
-                  color="info.main"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <KpiCard
-                  title="Pedidos de Compra"
-                  value={kpis?.pedidosCompraPendentes || 0}
-                  icon={<ShoppingCartIcon />}
-                  color="error.main"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <KpiCard
-                  title="Itens Cadastrados"
-                  value={kpis?.totalItensCadastrados || 0}
-                  icon={<InventoryIcon />}
-                  color="text.secondary"
-                />
-              </Grid>
-            </>
-          )}
-        </Grid>
-
-        {/* --- 2. LINHA DOS GRÁFICOS E LISTAS --- */}
         <Grid container spacing={3}>
-          {/* Coluna do Gráfico de Pizza (O 'CategoryChart' agora se vira sozinho) */}
+          {/* --- 1. OS CARDS (KPIs) --- */}
+          <Grid item xs={12} md={4}>
+            <KpiCard title="Total de Tipos de Itens" value={kpis.totalItens} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <KpiCard title="Total de Unidades" value={kpis.totalUnidades} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <KpiCard
+              title="Itens Zerados (Falta)"
+              value={kpis.itensEmFalta}
+              isCritical={kpis.itensEmFalta > 0} // Fica vermelho se > 0
+            />
+          </Grid>
+
+          {/* --- 2. O GRÁFICO (Recharts) --- */}
           <Grid item xs={12} lg={8}>
-            <Paper sx={{ p: 2, height: 400, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" fontWeight="bold" mb={1}>
-                Itens por Categoria (Quantidade Total)
+            <Paper sx={{ p: 3, height: 400, boxShadow: 3 }}>
+              <Typography variant="h6" gutterBottom fontWeight="bold">
+                Distribuição por Categoria
               </Typography>
-              {/* 3. O 'CategoryChart' agora busca seus próprios dados */}
-              <CategoryChart />
+              {/* ResponsiveContainer faz o gráfico se ajustar ao tamanho da tela */}
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={statsCategorias}
+                  margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
+                >
+                  <CartesianGrid stroke="#f5f5f5" />
+                  <XAxis dataKey="categoria" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="quantidade"
+                    name="Quantidade de Itens"
+                    barSize={40}
+                    fill="#1976d2"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
             </Paper>
           </Grid>
 
-          {/* Coluna da Lista de Ações (Estoque Baixo) */}
+          {/* --- 3. A LISTA DE ALERTA (Estoque Baixo) --- */}
           <Grid item xs={12} lg={4}>
-            <ActionList title="Itens com Estoque Baixo">
-              {loadingEstoqueBaixo ? (
-                <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <>
-                  {itensEstoqueBaixo.length === 0 && (
-                     <ListItem>
-                       <ListItemText primary="Nenhum item com estoque baixo." />
-                     </ListItem>
-                  )}
+            <Paper sx={{ p: 0, height: 400, boxShadow: 3, overflow: "auto" }}>
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: "#fff3e0",
+                  borderBottom: "1px solid #ffe0b2",
+                }}
+              >
+                <Typography variant="h6" fontWeight="bold" color="warning.dark">
+                  ⚠️ Alerta: Estoque Baixo
+                </Typography>
+              </Box>
 
-                  {itensEstoqueBaixo.map((item) => (
+              <List>
+                {estoqueBaixo.length === 0 ? (
+                  <Typography sx={{ p: 2, color: "text.secondary" }}>
+                    Tudo certo! Nenhum item com estoque crítico.
+                  </Typography>
+                ) : (
+                  estoqueBaixo.map((item) => (
                     <React.Fragment key={item.id}>
                       <ListItem>
                         <ListItemIcon>
@@ -173,21 +195,28 @@ function DashboardPage() {
                         </ListItemIcon>
                         <ListItemText
                           primary={item.nome}
-                          secondary={`Em estoque: ${item.quantidade} (Mínimo: ${item.nivelMinimoEstoque})`}
+                          secondary={
+                            <>
+                              <Typography variant="caption" display="block">
+                                Patrimônio: {item.codigoPatrimonio || "N/A"}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                fontWeight="bold"
+                                color="error"
+                              >
+                                Restam apenas: {item.quantidade}
+                              </Typography>
+                            </>
+                          }
                         />
                       </ListItem>
                       <Divider variant="inset" component="li" />
                     </React.Fragment>
-                  ))}
-                  
-                  {kpis?.itensComEstoqueBaixo > 5 && (
-                    <Button component={RouterLink} to="/componentes" sx={{ mt: 1, ml: 1 }}>
-                      Ver todos ({kpis.itensComEstoqueBaixo})
-                    </Button>
-                  )}
-                </>
-              )}
-            </ActionList>
+                  ))
+                )}
+              </List>
+            </Paper>
           </Grid>
         </Grid>
       </Container>
