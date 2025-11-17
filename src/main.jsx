@@ -49,7 +49,76 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      // ... repita para todas as outras rotas
+      {
+        path: "/historico",
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <HistoricoPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/reposicao",
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <ReposicaoPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/configuracoes",
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <ConfiguracoesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/ajuda",
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <AjudaPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/pedidos",
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <PedidosPage />
+          </Suspense>
+        ),
+      },
+      // --- Rotas de Admin (Protegidas) ---
+      {
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <AdminRoute />
+          </Suspense>
+        ),
+        children: [
+          {
+            path: "/gerenciar-usuarios",
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <UserManagementPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/aprovacoes",
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <AprovacoesPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
+      },
     ],
   },
   {
