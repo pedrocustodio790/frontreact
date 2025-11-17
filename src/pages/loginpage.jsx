@@ -46,16 +46,44 @@ function LoginPage() {
     setLoading(true);
     try {
       const response = await api.post(`/auth/login`, data);
-      console.log("✅ Login bem-sucedido:", response.data);
+      console.log("🔍 Response data completo:", response.data);
 
-      const { token, usuario } = response.data;
+      // 🚨 BUSCA INTELIGENTE - tenta TODAS as combinações possíveis
+      const responseData = response.data;
 
+      // Procura token em todas as chaves possíveis
+      const token =
+        responseData.token ||
+        responseData.accessToken ||
+        responseData.jwt ||
+        responseData.access_token;
+
+      // Procura usuário em todas as chaves possíveis
+      const usuario =
+        responseData.user ||
+        responseData.usuario ||
+        responseData.usuarioDTO ||
+        responseData.userData ||
+        responseData.userInfo;
+
+      console.log("🔐 Token encontrado:", token);
+      console.log("👤 Usuário encontrado:", usuario);
+
+      if (!token) {
+        console.error("❌ NENHUMA chave de token encontrada!");
+        console.error("📦 Chaves disponíveis:", Object.keys(responseData));
+        toast.error("Erro: Estrutura de resposta inesperada do servidor");
+        return;
+      }
+
+      // 🎯 SALVA COM SUCESSO
       localStorage.setItem("jwt-token", token);
-      localStorage.setItem("user-data", JSON.stringify(usuario));
-
+      localStorage.setItem("user-data", JSON.stringify(usuario || {}));
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      console.log("🔄 Redirecionando para dashboard");
+      console.log("✅ Login concluído com sucesso!");
+      console.log("🔄 Redirecionando para dashboard...");
+
       navigate("/");
       window.location.reload();
     } catch (error) {
