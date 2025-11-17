@@ -37,29 +37,21 @@ import {
 // Seus Componentes
 import KpiCard from "../components/kpicard";
 
-console.log("📊 DashboardPage carregada");
-
 function DashboardPage() {
-  console.log("🎯 Componente DashboardPage renderizado");
-
   // Estados para armazenar os dados que vêm do Back-end
   const [kpis, setKpis] = useState({
     totalItens: 0,
     totalUnidades: 0,
     itensEmFalta: 0,
   });
-  const [statsCategorias, setStatsCategorias] = useState([]); // Para o gráfico
-  const [estoqueBaixo, setEstoqueBaixo] = useState([]); // Para a lista
+  const [statsCategorias, setStatsCategorias] = useState([]);
+  const [estoqueBaixo, setEstoqueBaixo] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Função que carrega tudo
   useEffect(() => {
-    console.log("🔄 useEffect executado - buscando dados do dashboard");
-
     const fetchData = async () => {
       try {
-        console.log("📡 Iniciando busca de dados do dashboard...");
-
         // Chamamos as 3 rotas otimizadas do Back-end em paralelo
         const [resKpis, resStats, resBaixo] = await Promise.all([
           api.get("/dashboard/kpis"),
@@ -67,22 +59,13 @@ function DashboardPage() {
           api.get("/dashboard/estoque-baixo"),
         ]);
 
-        console.log("✅ Dados recebidos:", {
-          kpis: resKpis.data,
-          stats: resStats.data,
-          estoqueBaixo: resBaixo.data,
-        });
-
         setKpis(resKpis.data);
         setStatsCategorias(resStats.data);
         setEstoqueBaixo(resBaixo.data);
-
-        console.log("📊 Dashboard atualizado com sucesso");
       } catch (error) {
-        console.error("❌ Erro ao carregar dashboard:", error);
+        console.error("Erro ao carregar dashboard:", error);
         toast.error("Erro ao carregar dados do dashboard");
       } finally {
-        console.log("🏁 Finalizando carregamento do dashboard");
         setLoading(false);
       }
     };
@@ -92,12 +75,10 @@ function DashboardPage() {
 
   // Função simples de PDF (Imprimir tela)
   const handleGeneratePdf = () => {
-    console.log("📄 Gerando relatório PDF/impressão");
     window.print();
   };
 
   if (loading) {
-    console.log("⏳ Dashboard em estado de loading");
     return (
       <Container maxWidth="xl" sx={{ mt: 4 }}>
         <Grid container spacing={3}>
@@ -114,12 +95,6 @@ function DashboardPage() {
       </Container>
     );
   }
-
-  console.log("🎨 Renderizando dashboard com dados:", {
-    kpis,
-    statsCategorias: statsCategorias.length,
-    estoqueBaixo: estoqueBaixo.length,
-  });
 
   return (
     <Box
@@ -158,7 +133,7 @@ function DashboardPage() {
             <KpiCard
               title="Itens Zerados (Falta)"
               value={kpis.itensEmFalta}
-              isCritical={kpis.itensEmFalta > 0} // Fica vermelho se > 0
+              isCritical={kpis.itensEmFalta > 0}
             />
           </Grid>
 
@@ -168,7 +143,6 @@ function DashboardPage() {
               <Typography variant="h6" gutterBottom fontWeight="bold">
                 Distribuição por Categoria
               </Typography>
-              {/* ResponsiveContainer faz o gráfico se ajustar ao tamanho da tela */}
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={statsCategorias}
