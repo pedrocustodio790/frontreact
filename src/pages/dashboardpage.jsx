@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import {
   Box,
   Container,
-  Grid, // Usando Grid v5 (item/container) para garantir compatibilidade
+  Grid,
   Paper,
   Typography,
   Button,
@@ -37,7 +37,11 @@ import {
 // Seus Componentes
 import KpiCard from "../components/kpicard";
 
+console.log("📊 DashboardPage carregada");
+
 function DashboardPage() {
+  console.log("🎯 Componente DashboardPage renderizado");
+
   // Estados para armazenar os dados que vêm do Back-end
   const [kpis, setKpis] = useState({
     totalItens: 0,
@@ -50,8 +54,12 @@ function DashboardPage() {
 
   // Função que carrega tudo
   useEffect(() => {
+    console.log("🔄 useEffect executado - buscando dados do dashboard");
+
     const fetchData = async () => {
       try {
+        console.log("📡 Iniciando busca de dados do dashboard...");
+
         // Chamamos as 3 rotas otimizadas do Back-end em paralelo
         const [resKpis, resStats, resBaixo] = await Promise.all([
           api.get("/dashboard/kpis"),
@@ -59,13 +67,22 @@ function DashboardPage() {
           api.get("/dashboard/estoque-baixo"),
         ]);
 
+        console.log("✅ Dados recebidos:", {
+          kpis: resKpis.data,
+          stats: resStats.data,
+          estoqueBaixo: resBaixo.data,
+        });
+
         setKpis(resKpis.data);
         setStatsCategorias(resStats.data);
         setEstoqueBaixo(resBaixo.data);
+
+        console.log("📊 Dashboard atualizado com sucesso");
       } catch (error) {
-        console.error("Erro ao carregar dashboard:", error);
-        // Se der erro (ex: cancelado), não faz nada ou avisa discretamente
+        console.error("❌ Erro ao carregar dashboard:", error);
+        toast.error("Erro ao carregar dados do dashboard");
       } finally {
+        console.log("🏁 Finalizando carregamento do dashboard");
         setLoading(false);
       }
     };
@@ -75,10 +92,12 @@ function DashboardPage() {
 
   // Função simples de PDF (Imprimir tela)
   const handleGeneratePdf = () => {
+    console.log("📄 Gerando relatório PDF/impressão");
     window.print();
   };
 
   if (loading) {
+    console.log("⏳ Dashboard em estado de loading");
     return (
       <Container maxWidth="xl" sx={{ mt: 4 }}>
         <Grid container spacing={3}>
@@ -95,6 +114,12 @@ function DashboardPage() {
       </Container>
     );
   }
+
+  console.log("🎨 Renderizando dashboard com dados:", {
+    kpis,
+    statsCategorias: statsCategorias.length,
+    estoqueBaixo: estoqueBaixo.length,
+  });
 
   return (
     <Box
