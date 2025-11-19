@@ -9,7 +9,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
 
 // --- 2. IMPORTAR LAYOUT E PROTEÇÃO ---
-import MainLayout from "./layouts/MainLayout";
+import MainLayout from "./layout/MainLayout";
 import { PrivateRoute } from "./routes/PrivateRoute"; // Usa aquele componente único que criamos
 
 // --- 3. LAZY LOADING DAS PÁGINAS ---
