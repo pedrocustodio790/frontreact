@@ -17,14 +17,14 @@ import { PrivateRoute } from "./Route/PrivateRoute"; // Usa aquele componente ú
 const LoginPage = lazy(() => import("./pages/loginpage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const DashboardPage = lazy(() => import("./pages/dashboardpage"));
-const ComponentesPage = lazy(() => import("./pages/ComponentesPage"));
-const HistoricoPage = lazy(() => import("./pages/HistoricoPage"));
-const ReposicaoPage = lazy(() => import("./pages/ReposicaoPage"));
+const ComponentesPage = lazy(() => import("./pages/componentepages"));
+const HistoricoPage = lazy(() => import("./pages/historicopage"));
+const ReposicaoPage = lazy(() => import("./pages/reposicaopage"));
 const ConfiguracoesPage = lazy(() => import("./pages/configuracaopages")); // Verifique o nome
 const AjudaPage = lazy(() => import("./pages/ajudapage"));
 const UserManagementPage = lazy(() => import("./pages/UserManagementpage"));
-const AprovacoesPage = lazy(() => import("./pages/AprovacoesPage")); // Verifique o nome
-const PedidosPage = lazy(() => import("./pages/PedidosCompraPage")); // Verifique o nome
+const AprovacoesPage = lazy(() => import("./pages/Aprovacaopages")); // Verifique o nome
+const PedidosPage = lazy(() => import("./pages/Pedidopages")); // Verifique o nome
 
 // Componente de Loading para o Suspense
 const Loading = () => (
