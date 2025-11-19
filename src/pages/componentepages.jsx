@@ -22,7 +22,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import api from "../services/api";
 
 // 1. MUDANÇA: Usar o Hook do Contexto
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../context/Authcontext";
 
 // 2. MUDANÇA: Imports com letras Maiúsculas (PascalCase) para evitar erro no Render
 import ComponentesTable from "../components/ComponentesTable"; // Verifique se o arquivo é ComponentesTable.jsx

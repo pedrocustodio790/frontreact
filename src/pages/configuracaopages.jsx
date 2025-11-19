@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
-import { ThemeContext } from "../context/themecontext.jsx";
+// CORREÇÃO 1: Import único do Contexto (verifique se o nome do arquivo é ThemeContext.js)
+import { ThemeContext } from "../context/themecontext";
 import api from "../services/api";
 import { jwtDecode } from "jwt-decode";
 
@@ -15,16 +16,22 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
-import UserManagement from "../components/usermanagement.jsx";
-import ModalAddUser from "../components/modaladduser.jsx";
+
+import ModalAddUser from "../components/ModalAddUser"; // Era 'modaladduser.jsx'
 
 function ConfiguracoesPage() {
   // --- ESTADOS ---
-  // ✅ As funções agora serão usadas no JSX
-  const { theme, toggleTheme, increaseFontSize, decreaseFontSize } =
-    useContext(ThemeContext);
+  const {
+    theme,
+    toggleTheme,
+    increaseFontSize,
+    decreaseFontSize,
+    // CORREÇÃO 3: cycleColorMode já vem do mesmo contexto
+    cycleColorMode,
+  } = useContext(ThemeContext);
+
   const [isAdmin, setIsAdmin] = useState(false);
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]); // Não usado se não tiver a tabela aqui
   const [loading, setLoading] = useState(false);
   const [isAddUserModalVisible, setAddUserModalVisible] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -34,8 +41,13 @@ function ConfiguracoesPage() {
   useEffect(() => {
     const token = localStorage.getItem("jwt-token");
     if (token) {
-      const decodedToken = jwtDecode(token);
-      setIsAdmin(decodedToken.role === "ADMIN");
+      try {
+        const decodedToken = jwtDecode(token);
+        // Verifica se role existe e é ADMIN
+        setIsAdmin(decodedToken.role === "ADMIN");
+      } catch (e) {
+        console.error("Erro ao decodificar token", e);
+      }
     }
   }, []);
 
@@ -53,26 +65,7 @@ function ConfiguracoesPage() {
     }
   }, [isAdmin]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (isVerified) {
-        setLoading(true);
-        try {
-          const response = await api.get("/usuarios");
-          setUsers(response.data);
-        } catch (error) {
-          // ✅ Adicionado console.error para "usar" a variável error
-          console.error("Erro ao carregar usuários:", error);
-          toast.error("Não foi possível carregar a lista de usuários.");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    fetchUsers();
-  }, [isVerified]);
-
-  // --- HANDLERS ---
+  // Handlers
   const handleSalvarLimite = async () => {
     try {
       await api.put("/configuracoes/limiteEstoqueBaixo", {
@@ -88,12 +81,13 @@ function ConfiguracoesPage() {
   const handleVerifyPassword = async () => {
     setLoading(true);
     try {
+      // Dica: Certifique-se que essa rota existe no backend ou ajuste a lógica
       await api.post("/auth/verify-password", { password });
       setIsVerified(true);
       toast.success("Identidade verificada com sucesso!");
     } catch (error) {
       console.error("Erro na verificação de senha:", error);
-      toast.error("Senha incorreta. Tente novamente.");
+      toast.error("Senha incorreta.");
     } finally {
       setLoading(false);
     }
@@ -114,22 +108,22 @@ function ConfiguracoesPage() {
           Configurações
         </Typography>
 
-        {/* --- SEÇÃO DE APARÊNCIA (COM FUNÇÕES CONECTADAS) --- */}
+        {/* --- APARÊNCIA --- */}
         <Paper sx={{ p: 3, mb: 4, boxShadow: 3 }}>
           <Typography variant="h6" gutterBottom>
             Aparência
           </Typography>
-          {/* ✅ 'onChange' conectado */}
+
           <FormControlLabel
             control={
               <Switch checked={theme === "dark"} onChange={toggleTheme} />
             }
             label="Modo Escuro"
           />
+
           <Box sx={{ mt: 2 }}>
             <Typography variant="body1">Tamanho da Fonte</Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {/* ✅ 'onClick' conectado */}
               <Button variant="outlined" onClick={decreaseFontSize}>
                 A-
               </Button>
@@ -138,9 +132,19 @@ function ConfiguracoesPage() {
               </Button>
             </Box>
           </Box>
+
+          <Box sx={{ mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={cycleColorMode}
+              color="secondary"
+            >
+              Alternar Modo Daltônico
+            </Button>
+          </Box>
         </Paper>
 
-        {/* --- SEÇÃO DE CONFIGURAÇÕES DE ESTOQUE (COM FUNÇÃO CONECTADA) --- */}
+        {/* --- ESTOQUE (ADMIN) --- */}
         {isAdmin && (
           <Paper sx={{ p: 3, mb: 4, boxShadow: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -154,7 +158,6 @@ function ConfiguracoesPage() {
                 value={limiteEstoque}
                 onChange={(e) => setLimiteEstoque(e.target.value)}
               />
-              {/* ✅ 'onClick' conectado */}
               <Button variant="contained" onClick={handleSalvarLimite}>
                 Salvar
               </Button>
@@ -162,25 +165,23 @@ function ConfiguracoesPage() {
           </Paper>
         )}
 
-        {/* --- SEÇÃO DE GESTÃO DE UTILIZADORES --- */}
+        {/* --- AREA SENSÍVEL (ADMIN) --- */}
         {isAdmin && (
           <Paper sx={{ p: 3, boxShadow: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Gestão de Utilizadores
+              Adicionar Admin / Gestão Rápida
             </Typography>
+
             {!isVerified ? (
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}
               >
                 <TextField
-                  label="Digite sua senha para continuar"
+                  label="Confirme sua senha"
                   type="password"
                   size="small"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && handleVerifyPassword()
-                  }
                 />
                 <Button
                   variant="contained"
@@ -195,25 +196,29 @@ function ConfiguracoesPage() {
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{ mb: 2 }}
                   onClick={() => setAddUserModalVisible(true)}
                 >
-                  Adicionar Novo Utilizador
+                  Adicionar Novo Usuário
                 </Button>
-                {loading ? (
-                  <CircularProgress />
-                ) : (
-                  <UserManagement users={users} onUserUpdate={() => {}} />
-                )}
+
+                <Typography
+                  variant="caption"
+                  display="block"
+                  sx={{ mt: 2, color: "text.secondary" }}
+                >
+                  Para gestão completa, acesse o menu "Usuários" na barra
+                  lateral.
+                </Typography>
               </Box>
             )}
           </Paper>
         )}
       </Container>
+
       <ModalAddUser
         isVisible={isAddUserModalVisible}
         onClose={() => setAddUserModalVisible(false)}
-        onUserAdded={() => {}}
+        onUserAdded={() => toast.success("Usuário criado!")}
       />
     </Box>
   );
