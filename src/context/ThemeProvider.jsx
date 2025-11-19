@@ -4,7 +4,7 @@ import {
   createTheme,
 } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { paletteColors } from "../theme/colors";
+import { paletteColors } from "../context/color";
 
 // IMPORTA O CONTEXTO DO OUTRO ARQUIVO (Isso resolve o erro do Fast Refresh)
 import { ThemeContext } from "./themecontext";
