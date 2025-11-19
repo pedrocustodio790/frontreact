@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { AuthContext } from "../contexts/AuthContext";
+import { AuthContext } from "../context/Authcontext";
 import { CircularProgress, Box } from "@mui/material";
 
 // adminOnly = true significa que só ADMIN pode ver
@@ -9,7 +9,14 @@ export function PrivateRoute({ adminOnly = false }) {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
