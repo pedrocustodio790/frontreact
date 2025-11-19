@@ -22,13 +22,41 @@ import {
 
 // MUDANÇA: Schema atualizado com 'nome' e 'dominio' (nome correto)
 const schema = yup.object().shape({
-  dominio: yup.string().required("O domínio da empresa é obrigatório"),
-  nome: yup.string().required("O nome é obrigatório"), // <-- CAMPO ADICIONADO
+  dominio: yup
+    .string()
+    .required("O domínio da empresa é obrigatório")
+    // 1. Transform: Garante que, mesmo se o usuário digitar Maiúsculas, vira minúsculo
+    .transform((value) => (value ? value.toLowerCase() : value))
+    // 2. Regex: Aceita apenas letras, números e hífens (padrão de URL/Slug)
+    .matches(
+      /^[a-z0-9-]+$/,
+      "O domínio não pode ter espaços, acentos ou símbolos (use apenas letras e hifens)"
+    ),
+
+  nome: yup
+    .string()
+    .required("O nome é obrigatório")
+    .min(3, "O nome deve ter pelo menos 3 caracteres")
+    // Opcional: Regex para evitar que alguém se cadastre com nome "12345"
+    .matches(
+      /^[A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]+$/,
+      "O nome deve conter apenas letras"
+    ),
+
   email: yup.string().email("Email inválido").required("O email é obrigatório"),
+
   senha: yup
     .string()
-    .min(6, "A senha deve ter no mínimo 6 caracteres")
-    .required("A senha é obrigatória"),
+    .required("A senha é obrigatória")
+    .min(8, "A senha deve ter no mínimo 8 caracteres") // Aumentei para 8 (padrão de mercado)
+    // Regex para forçar complexidade
+    .matches(/[a-z]/, "Deve conter pelo menos uma letra minúscula")
+    .matches(/[A-Z]/, "Deve conter pelo menos uma letra maiúscula")
+    .matches(/[0-9]/, "Deve conter pelo menos um número")
+    .matches(
+      /[@$!%*?&#]/,
+      "Deve conter pelo menos um caractere especial (@$!%*?&#)"
+    ),
 });
 
 export default function RegisterPage() {
@@ -53,7 +81,7 @@ export default function RegisterPage() {
   const onSubmit = async (data) => {
     // 'data' agora tem { dominio, nome, email, senha }
     setLoading(true);
-    
+
     // MUDANÇA: Criamos o payload final que o RegisterDTO espera
     const payload = {
       ...data,
@@ -127,7 +155,6 @@ export default function RegisterPage() {
                 />
               )}
             />
-
             {/* MUDANÇA: Adicionado Controller para NOME */}
             <Controller
               name="nome"
@@ -144,7 +171,6 @@ export default function RegisterPage() {
                 />
               )}
             />
-
             <Controller
               name="email"
               control={control}
@@ -161,7 +187,6 @@ export default function RegisterPage() {
                 />
               )}
             />
-
             <Controller
               name="senha"
               control={control}
@@ -172,9 +197,12 @@ export default function RegisterPage() {
                   fullWidth
                   label="Senha"
                   type="password"
-                  autoComplete="new-password"
                   error={!!errors.senha}
-                  helperText={errors.senha?.message}
+                  // Mostra o erro SE existir, senão mostra a dica
+                  helperText={
+                    errors.senha?.message ||
+                    "Mín. 8 chars, letra maiúscula, número e símbolo."
+                  }
                 />
               )}
             />

@@ -1,5 +1,4 @@
-// Em: src/pages/UserManagementPage.jsx (VERSÃO OTIMIZADA)
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
 
@@ -23,126 +22,109 @@ import {
   Button,
   Stack,
   IconButton,
-  TablePagination, // MUDANÇA: Importar o componente de paginação
+  TablePagination,
 } from "@mui/material";
 
-// Imports de Ícones
+// Ícones
 import AddIcon from "@mui/icons-material/Add";
 import KeyIcon from "@mui/icons-material/Key";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import PersonIcon from "@mui/icons-material/Person";
 
-// Imports dos Modais
-import ModalAddUser from "../components/modaladduser";
+// Modais
+import ModalAddUser from "../components/ModalAddUser";
 import ModalResetPassword from "../components/ModalUserResetPassword";
 
-
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace('/api', '');
-const FOTOS_URL_BASE = `${API_BASE_URL}/user-photos/`; 
+// Lógica para pegar a URL base das fotos
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const SERVER_URL = API_URL.endsWith("/api") ? API_URL.slice(0, -4) : API_URL;
+const FOTOS_URL_BASE = `${SERVER_URL}/user-photos/`;
 
 function UserManagementPage() {
-  const [users, setUsers] = useState([]); // MUDANÇA: Agora guarda só o 'content'
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modais
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [userToReset, setUserToReset] = useState(null);
 
-  // --- MUDANÇA: Estados de Paginação ---
-  const [page, setPage] = useState(0); // A página atual (começa em 0)
-  const [rowsPerPage, setRowsPerPage] = useState(10); // Itens por página
-  const [totalElements, setTotalElements] = useState(0); // Total de itens no DB
+  // Paginação
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
 
-  // Função para buscar os usuários da API (agora paginada)
-  const fetchUsers = async (currentPage, currentRowsPerPage) => {
+  // 1. Busca Usuários
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      // MUDANÇA: Envia os parâmetros de paginação e ordena por nome
-      const response = await api.get(
-        `/users?page=${currentPage}&size=${currentRowsPerPage}&sort=nome,asc`
-      );
+      const response = await api.get("/users", {
+        params: {
+          page: page,
+          size: rowsPerPage,
+          sort: "nome,asc",
+        },
+      });
 
-      // MUDANÇA: A API retorna um objeto Page
-      setUsers(response.data.content); // O array de usuários está em 'content'
-      setTotalElements(response.data.totalElements); // O total de usuários
+      setUsers(response.data.content || []);
+      setTotalElements(response.data.totalElements);
     } catch (error) {
-      toast.error("Falha ao carregar usuários. Acesso negado?");
+      toast.error("Falha ao carregar usuários.");
       console.error(error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage]);
 
-  // Busca os usuários quando a página (ou rowsPerPage) muda
   useEffect(() => {
-    fetchUsers(page, rowsPerPage);
-  }, [page, rowsPerPage]); // MUDANÇA: Dispara de novo se 'page' ou 'rowsPerPage' mudar
+    fetchUsers();
+  }, [fetchUsers]);
 
-  // --- Handlers (Funções de Ação) ---
+  // --- Handlers ---
 
   const handleUserAdded = () => {
     toast.success("Novo usuário criado com sucesso!");
-    // MUDANÇA: Volta para a primeira página para ver o novo usuário
     setPage(0);
-    fetchUsers(0, rowsPerPage);
-  };
-
-  const handleOpenResetModal = (user) => {
-    setUserToReset(user);
-  };
-
-  const handleCloseResetModal = () => {
-    setUserToReset(null);
+    fetchUsers();
   };
 
   const handleRoleChange = async (userId, newRole) => {
+    // Otimização visual (Optimistic UI update)
+    const oldUsers = [...users];
+    setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+
     try {
       await api.put(`/users/${userId}/role`, { role: newRole });
-      toast.success("Função do usuário atualizada!");
-     
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
-        )
-      );
+      toast.success("Permissão atualizada!");
     } catch (error) {
-      toast.error("Falha ao atualizar a função.");
-      console.error(error);
+      // --- CORREÇÃO AQUI ---
+      // Usamos o 'error' para logar no console, assim o aviso some e você consegue debugar
+      console.error("Erro ao alterar permissão:", error);
+
+      setUsers(oldUsers); // Reverte se der erro
+      toast.error("Erro ao alterar permissão.");
     }
   };
 
-  // --- MUDANÇA: Handlers de Paginação ---
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage); 
-  };
+  // Paginação
+  const handleChangePage = (event, newPage) => setPage(newPage);
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10)); 
+    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  // Bloco de "Loading" (está correto)
-  if (loading && users.length === 0) {
-    // MUDANÇA: Mostra o loading só na primeira carga
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          mt: 10,
-          width: "100%",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // --- Renderização da Página ---
   return (
     <Box
       component="main"
-      sx={{ flexGrow: 1, p: 3, backgroundColor: "background.default" }}
+      sx={{
+        flexGrow: 1,
+        p: 3,
+        bgcolor: "background.default",
+        minHeight: "100vh",
+      }}
     >
       <Container maxWidth="lg">
-        {/* Header (está correto) */}
+        {/* Cabeçalho */}
         <Box
           sx={{
             display: "flex",
@@ -151,7 +133,7 @@ function UserManagementPage() {
             mb: 4,
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h4" fontWeight="bold">
             Gerenciamento de Usuários
           </Typography>
           <Button
@@ -159,102 +141,139 @@ function UserManagementPage() {
             startIcon={<AddIcon />}
             onClick={() => setIsAddModalOpen(true)}
           >
-            Adicionar Usuário
+            Novo Usuário
           </Button>
         </Box>
 
-        {/* Tabela de Usuários */}
-        <Paper sx={{ boxShadow: 3 }}>
+        {/* Tabela */}
+        <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
           <TableContainer>
-            <Table>
+            <Table stickyHeader>
               <TableHead>
-                {/* ... O seu TableHead (Foto, Nome, Email, etc) está perfeito ... */}
                 <TableRow>
-                  <TableCell sx={{ fontWeight: "bold" }}>Foto</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Perfil</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>
-                    Função (Role)
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Função</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">
                     Ações
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {/* O .map() agora funciona, pois 'users' é o array 'content' */}
-                {users.map((user) => (
-                  <TableRow hover key={user.id}>
-                    {/* ... O seu .map() (Avatar, Nome, Email, Select) está perfeito ... */}
-                    <TableCell>
-                      <Avatar
-                        src={
-                          user.caminhoFotoPerfil
-                            ? `${FOTOS_URL_BASE}${user.caminhoFotoPerfil}`
-                            : ""
-                        }
-                      >
-                        {user.nome ? user.nome[0].toUpperCase() : "?"}
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>{user.nome}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <Select
-                          value={user.role}
-                          onChange={(e) =>
-                            handleRoleChange(user.id, e.target.value)
-                          }
-                        >
-                          <MenuItem value="ADMIN">Admin</MenuItem>
-                          <MenuItem value="USER">User</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack
-                        direction="row"
-                        spacing={0}
-                        justifyContent="flex-end"
-                      >
-                        <IconButton
-                          color="warning"
-                          size="small"
-                          onClick={() => handleOpenResetModal(user)}
-                        >
-                          <KeyIcon />
-                        </IconButton>
-                      </Stack>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 5 }}>
+                      <CircularProgress />
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  users.map((user) => (
+                    <TableRow hover key={user.id}>
+                      <TableCell>
+                        <Avatar
+                          src={
+                            user.caminhoFotoPerfil
+                              ? `${FOTOS_URL_BASE}${user.caminhoFotoPerfil}`
+                              : undefined
+                          }
+                          alt={user.nome}
+                        >
+                          {user.nome?.charAt(0).toUpperCase()}
+                        </Avatar>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="bold">
+                          {user.nome}
+                        </Typography>
+                        {user.dominio && (
+                          <Typography variant="caption" color="textSecondary">
+                            @{user.dominio}
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <FormControl size="small" variant="standard">
+                          <Select
+                            value={user.role}
+                            onChange={(e) =>
+                              handleRoleChange(user.id, e.target.value)
+                            }
+                            disableUnderline
+                            sx={{
+                              fontSize: "0.875rem",
+                              fontWeight: "bold",
+                              color:
+                                user.role === "ADMIN"
+                                  ? "primary.main"
+                                  : "text.secondary",
+                            }}
+                            IconComponent={() => null}
+                            renderValue={(value) => (
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={1}
+                              >
+                                {value === "ADMIN" ? (
+                                  <AdminPanelSettingsIcon fontSize="small" />
+                                ) : (
+                                  <PersonIcon fontSize="small" />
+                                )}
+                                <span>
+                                  {value === "ADMIN"
+                                    ? "Administrador"
+                                    : "Usuário"}
+                                </span>
+                              </Stack>
+                            )}
+                          >
+                            <MenuItem value="ADMIN">Administrador</MenuItem>
+                            <MenuItem value="USER">Usuário Padrão</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          color="warning"
+                          startIcon={<KeyIcon />}
+                          onClick={() => setUserToReset(user)}
+                        >
+                          Senha
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* MUDANÇA: Adicionar o componente de Paginação */}
           <TablePagination
             component="div"
-            count={totalElements} // O total de itens que existem no DB
-            page={page} // A página atual
-            onPageChange={handleChangePage} // Função para mudar de página
-            rowsPerPage={rowsPerPage} // Quantos itens por página
-            onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar itens por página
-            rowsPerPageOptions={[5, 10, 25]} // Opções de "itens por página"
+            count={totalElements}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            labelRowsPerPage="Usuários por página:"
           />
         </Paper>
       </Container>
 
-      {/* Os modais (estão corretos) */}
+      {/* Modais */}
       <ModalAddUser
         isVisible={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onUserAdded={handleUserAdded}
       />
+
       <ModalResetPassword
         isVisible={!!userToReset}
-        onClose={handleCloseResetModal}
+        onClose={() => setUserToReset(null)}
         userToReset={userToReset}
       />
     </Box>

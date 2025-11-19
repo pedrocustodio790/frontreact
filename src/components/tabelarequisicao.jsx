@@ -13,49 +13,85 @@ import {
   TableHead,
   TableRow,
   Stack,
-  Typography, // Adicione Typography
+  Typography,
+  // NOVOS IMPORTS PARA O MODAL
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  DialogContentText,
 } from "@mui/material";
 
 function TabelaRequisicoes() {
   const [requisicoes, setRequisicoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // --- ESTADOS DO MODAL ---
+  const [open, setOpen] = useState(false);
+  const [acao, setAcao] = useState(null); // 'aprovar' ou 'recusar'
+  const [selectedId, setSelectedId] = useState(null);
+  const [motivo, setMotivo] = useState("");
+  const [processing, setProcessing] = useState(false);
+
   const fetchRequisicoes = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/requisicoes/pendentes"); // Endpoint /api/requisicoes/pendentes
-      setRequisicoes(response.data.content || []); // Garante que seja um array
+      const response = await api.get("/requisicoes/pendentes");
+      setRequisicoes(response.data.content || []);
     } catch (error) {
+      console.error("Erro ao buscar requisições:", error);
+
       toast.error("Falha ao carregar requisições de estoque.");
-      console.error("Erro fetchRequisicoes:", error);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchRequisicoes();
   }, []);
 
-  const handleAprovar = async (id) => {
-    try {
-      await api.put(`/requisicoes/${id}/aprovar`); // Endpoint /api/requisicoes/{id}/aprovar
-      toast.success("Requisição de estoque APROVADA!");
-      fetchRequisicoes();
-    } catch (error) {
-      toast.error("Falha ao aprovar.");
-      console.error("Erro handleAprovar:", error);
-    }
+  // 1. Abre o Modal em vez de chamar a API direto
+  const handleOpenDialog = (id, tipoAcao) => {
+    setSelectedId(id);
+    setAcao(tipoAcao);
+    setMotivo(""); // Limpa o campo
+    setOpen(true);
   };
 
-  const handleRecusar = async (id) => {
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedId(null);
+    setAcao(null);
+  };
+
+  // 2. Envia para o Backend com o motivo
+  const handleSubmit = async () => {
+    if (acao === "recusar" && !motivo.trim()) {
+      toast.warning("Para recusar, é obrigatório informar o motivo.");
+      return;
+    }
+
+    setProcessing(true);
     try {
-      await api.put(`/requisicoes/${id}/recusar`); // Endpoint /api/requisicoes/{id}/recusar
-      toast.warn("Requisição de estoque RECUSADA.");
-      fetchRequisicoes();
+      const endpoint = `/requisicoes/${selectedId}/${acao}`; // /aprovar ou /recusar
+
+      // O PULO DO GATO: Enviamos o objeto { motivo: ... }
+      await api.put(endpoint, { motivo: motivo });
+
+      toast.success(
+        `Requisição ${
+          acao === "aprovar" ? "APROVADA" : "RECUSADA"
+        } com sucesso!`
+      );
+      fetchRequisicoes(); // Atualiza a lista
+      handleClose(); // Fecha o modal
     } catch (error) {
-      toast.error("Falha ao recusar.");
-      console.error("Erro handleRecusar:", error);
+      const msg = error.response?.data?.message || "Erro ao processar ação.";
+      toast.error(msg);
+      console.error(`Erro handle${acao}:`, error);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -68,71 +104,124 @@ function TabelaRequisicoes() {
   }
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
-      <TableContainer>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Qtd. Pedida</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Solicitante</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
-                Ações
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requisicoes.length > 0 ? (
-              requisicoes.map((req) => (
-                <TableRow hover key={req.id}>
-                  <TableCell>{req.componenteNome || "N/A"}</TableCell>
-                  <TableCell>
-                    {req.componenteCodigoPatrimonio || "N/A"}
-                  </TableCell>
-                  <TableCell>{req.quantidade}</TableCell>
-                  <TableCell>{req.usuarioNome || "N/A"}</TableCell>
-                  <TableCell>
-                    {req.dataRequisicao
-                      ? new Date(req.dataRequisicao).toLocaleString("pt-BR")
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="success"
-                        onClick={() => handleAprovar(req.id)}
-                      >
-                        Aprovar
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="error"
-                        onClick={() => handleRecusar(req.id)}
-                      >
-                        Recusar
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
+    <>
+      <Paper sx={{ width: "100%", overflow: "hidden", boxShadow: 3 }}>
+        <TableContainer>
+          <Table stickyHeader>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography color="text.secondary" sx={{ p: 2 }}>
-                    Nenhuma requisição de estoque pendente.
-                  </Typography>
+                <TableCell sx={{ fontWeight: "bold" }}>Item</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Patrimônio</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Qtd.</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Solicitante</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Data</TableCell>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
+                  Ações
                 </TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+            </TableHead>
+            <TableBody>
+              {requisicoes.length > 0 ? (
+                requisicoes.map((req) => (
+                  <TableRow hover key={req.id}>
+                    <TableCell>{req.componenteNome || "N/A"}</TableCell>
+                    <TableCell>
+                      {req.componenteCodigoPatrimonio || "N/A"}
+                    </TableCell>
+                    <TableCell>{req.quantidade}</TableCell>
+                    <TableCell>{req.usuarioNome || "N/A"}</TableCell>
+                    <TableCell>
+                      {req.dataRequisicao
+                        ? new Date(req.dataRequisicao).toLocaleDateString(
+                            "pt-BR"
+                          )
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="center"
+                      >
+                        <Button
+                          variant="contained"
+                          size="small"
+                          color="success"
+                          // Chama a função que abre o modal
+                          onClick={() => handleOpenDialog(req.id, "aprovar")}
+                        >
+                          Aprovar
+                        </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          color="error"
+                          // Chama a função que abre o modal
+                          onClick={() => handleOpenDialog(req.id, "recusar")}
+                        >
+                          Recusar
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography color="text.secondary" sx={{ p: 2 }}>
+                      Nenhuma requisição de estoque pendente.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      {/* --- MODAL DE CONFIRMAÇÃO --- */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {acao === "aprovar" ? "Confirmar Aprovação" : "Confirmar Recusa"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            {acao === "aprovar"
+              ? "Aprovar esta requisição irá baixar o estoque automaticamente. Deseja adicionar uma observação?"
+              : "Por favor, informe o motivo da recusa:"}
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Motivo / Observação"
+            fullWidth
+            multiline
+            rows={3}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            variant="outlined"
+            // Torna obrigatório se for recusar
+            required={acao === "recusar"}
+            error={acao === "recusar" && motivo.trim() === ""}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} disabled={processing}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color={acao === "aprovar" ? "success" : "error"}
+            disabled={
+              processing || (acao === "recusar" && motivo.trim() === "")
+            }
+          >
+            {processing ? "Processando..." : "Confirmar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

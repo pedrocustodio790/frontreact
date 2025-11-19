@@ -1,9 +1,9 @@
 // src/components/categoriachart.jsx (VERSÃO PROFISSIONAL)
-import { useState, useEffect } from 'react';
-import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
-import { Box, CircularProgress, Typography } from '@mui/material';
-import api from '../services/api';
+import { useState, useEffect } from "react";
+import { Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import api from "../services/api";
 
 // Registra os plugins necessários do Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
@@ -29,17 +29,17 @@ function CategoryChart() {
         const data = response.data; // (Vem como [ { categoria: "...", quantidadeTotal: ... } ])
 
         // 2. Transforma os dados para o Chart.js
-        const labels = data.map(item => item.categoria || "Sem Categoria");
-        const quantities = data.map(item => item.quantidadeTotal);
+        const labels = data.map((item) => item.categoria || "Sem Categoria");
+        const quantities = data.map((item) => item.quantidade);
 
         setChartData({
           labels: labels,
           datasets: [
             {
-              label: 'Quantidade Total',
+              label: "Quantidade Total",
               data: quantities,
               backgroundColor: generateColor(labels.length),
-              borderColor: '#ffffff',
+              borderColor: "#ffffff",
               borderWidth: 1,
             },
           ],
@@ -59,7 +59,7 @@ function CategoryChart() {
     maintainAspectRatio: false, // Essencial para o layout do MUI
     plugins: {
       legend: {
-        position: 'right', // Posição da legenda
+        position: "right", // Posição da legenda
       },
       title: {
         display: false, // O título já está no 'DashboardPage.jsx'
@@ -70,7 +70,14 @@ function CategoryChart() {
   // --- Renderização ---
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -78,15 +85,24 @@ function CategoryChart() {
 
   if (!chartData || chartData.labels.length === 0) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <Typography color="text.secondary">Não há dados de estoque para exibir.</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
+        <Typography color="text.secondary">
+          Não há dados de estoque para exibir.
+        </Typography>
       </Box>
     );
   }
 
   return (
     // Box flexível para preencher o espaço (necessário para 'maintainAspectRatio: false')
-    <Box sx={{ position: 'relative', height: '100%', width: '100%' }}>
+    <Box sx={{ position: "relative", height: "100%", width: "100%" }}>
       <Doughnut data={chartData} options={chartOptions} />
     </Box>
   );
