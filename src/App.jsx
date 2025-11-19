@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { CircularProgress, Box } from "@mui/material";
 
 // --- 1. IMPORTAR CONTEXTOS (Providers) ---
-import { AuthProvider } from "./contexts/AuthProvider";
+import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
 
 // --- 2. IMPORTAR LAYOUT E PROTEÇÃO ---
